@@ -1,0 +1,25 @@
+# Python installation file.
+
+[project]
+name = "projplot"
+version = "0.1.0"
+description = "Plotting with PROJ and Matplotlib."
+authors = [
+    {name = "Malte J. Ziebarth", email = "ziebarth@gfz-potsdam.de"}
+]
+
+[dependencies]
+matplotlib = "^3.5.1"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+#requires = ["mesonpep517"]
+#build-backend = "mesonpep517.buildapi"
+
+[tool.setuptools]
+packages = ["projplot","projplot.extensions"]
+#data_files = ["bla"]
+
+[tool.setuptools.package-data]
+projplot = ["extensions/libinverse.so"]
