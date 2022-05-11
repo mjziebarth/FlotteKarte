@@ -22,10 +22,14 @@ def invert_proj(proj_str: str, x: np.ndarray, y: np.ndarray,
     y = np.ascontiguousarray(y, dtype=np.double)
     proj_str = str(proj_str)
 
+    N = x.size
+    if y.size != N:
+        raise RuntimeError("Size of x and y must be equal.")
+
     # Determine the projection
     proj_split = [p.split("=") for p in proj_str.split()]
     strip_plus = lambda s : s[1:] if len(s) > 0 and s[0] == '+' else s
-    params = {strip_plus(p[0]) : p[1] for p in proj_split}
+    params = {strip_plus(p[0]) : p[1] for p in proj_split if len(p) > 1}
     if "proj" not in params:
         raise RuntimeError("No projection given.")
     projection = params["proj"]
@@ -56,12 +60,15 @@ def invert_proj(proj_str: str, x: np.ndarray, y: np.ndarray,
 
     # Create the output buffer and call C code:
     lola = np.zeros((N,2))
-    cdll.inverse_project_data_optimize(c_char_p(projstr), c_ulong(N),
-                                       x.ctypes.data_as(POINTER(c_double)),
-                                       y.ctypes.data_as(POINTER(c_double)),
-                                       c_double(lon0), c_double(lat0),
-                                       lolactypes.data_as(POINTER(c_double))
+    proj_str = proj_str.encode("ascii")
+    _cdll.inverse_project_data_optimize(c_char_p(proj_str), c_ulong(N),
+                                        x.ctypes.data_as(POINTER(c_double)),
+                                        y.ctypes.data_as(POINTER(c_double)),
+                                        c_double(lon0), c_double(lat0),
+                                        lola.ctypes.data_as(POINTER(c_double))
                                       )
 
-    return lola
+    lola = lola.T
+
+    return lola[0,:], lola[1,:]
 
