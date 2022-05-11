@@ -29,15 +29,20 @@ void inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
                                    double* lon_lat)
 {
 	/* Initialize the projection: */
+	#ifdef DEBUG
 	std::cout << "  lon0 = " << lon0 << "\n";
 	std::cout << "  lat0 = " << lat0 << "\n";
 	std::cout << "initializing proj wrapper\n" << std::flush;
+	#endif
 	try {
 		ProjWrapper proj(proj_str);
 		GriddedInverter ginv(proj, 100, 50);
 
 		/* Parallel projection: */
+		#ifdef DEBUG
 		std::cout << "start projection loop...\n" << std::flush;
+		#endif
+
 		#pragma omp parallel for
 		for (size_t i=0; i<Npoints; ++i){
 			xy_t xy({x[i], y[i]});
@@ -47,8 +52,13 @@ void inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
 			lon_lat[2*i] = rad2deg(lola.lambda);
 			lon_lat[2*i+1] = rad2deg(lola.phi);
 		}
+
+		#ifdef DEBUG
 		std::cout << "cleaning up!\n" << std::flush;
+		#endif
 	} catch (...) {
+		#ifdef DEBUG
 		std::cout << "error occurred.\n" << std::flush;
+		#endif
 	}
 }
