@@ -3,6 +3,10 @@
 #include <../include/linalg.hpp>
 #include <iostream>
 
+#include <boost/math/tools/roots.hpp>
+using boost::math::tools::eps_tolerance;
+using boost::math::tools::bracket_and_solve_root;
+
 using projplot::geo_t;
 using projplot::ProjWrapper;
 using projplot::xy_t;
@@ -41,6 +45,10 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 		geo.phi = modulo(la_ph[1]+PI/2, PI) - PI/2;
 		if (!even)
 			geo.phi = -geo.phi;
+		if (geo.phi > PI/2)
+			std::cerr << "geo.phi > PI/2\n" << std::flush;
+		if (geo.phi < -PI/2)
+			std::cerr << "geo.phi < -PI/2\n" << std::flush;
 		return geo;
 	};
 
@@ -67,16 +75,69 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 	};
 
 
-	double step = 0.5;
+	constexpr int MAX_STEPS = 1000;
+	const eps_tolerance<double> tol(12);
+	double step = 0.1;
 	double cost_i = cost(lola);
-	int i;
-	for (i=0; i<1000; ++i){
+	int i, m=0;
+	for (i=0; i<MAX_STEPS; ++i){
 		if (cost_i < 1e-30){
 			break;
 		}
 
 		/* Compute gradient: */
 		vd_t g(gradient(lola));
+
+		/* Every ever-so-many iterations, check whether we are in
+		 * a valley of death close to the poles.
+		 * There, we might have a super slim valley: gradients in
+		 * latitude direction are very steep but the longitude
+		 * (which remains indetermined) direction is very shallow. */
+		if (m >= 40){
+			auto cost_lon = [&](double lambda)->double {
+				const geo_t geo(compute_lambda_phi(vd_t({lambda,
+						                                 lola[1]})));
+				const xy_t xy_proj(projection.project(geo.lambda,
+						                              geo.phi));
+				const double dx = (xy_proj.x - xy.x);
+				const double dy = (xy_proj.y - xy.y);
+				return dx + dy;
+			};
+
+			/* Bring back to coordinate plane: */
+			geo_t geo(compute_lambda_phi(lola));
+			lola[0] = geo.lambda;
+			lola[1] = geo.phi;
+			bool is_rising = cost_lon(lola[0]+1e-5)
+			                    > cost_lon(lola[0]);
+			std::uintmax_t iterations = 40;
+			try {
+				std::pair<double,double> lr
+				   = bracket_and_solve_root(cost_lon, lola[0], 1.3,
+				                            is_rising, tol, iterations);
+				vd_t lola_propose({0.5 * (lr.first + lr.second),
+				                   lola[1]});
+				double cost_propose = cost(lola_propose);
+				if (cost_propose < cost_i){
+					/* Accept. */
+					lola = lola_propose;
+					cost_i = cost_propose;
+				}
+			} catch (...) {
+				/* Failed the root finding, reset counter and continue
+				 * as if nothing ever happened (except the parameter
+				 * cropping). */
+			}
+
+			/* Reset the counter: */
+			m = 0;
+
+			/* Do not continue as usual: */
+			cost_i = cost(lola);
+			continue;
+		} else {
+			++m;
+		}
 
 		/* Make sure that we choose a step size that reduces the cost: */
 		double cost_n0 = cost(lola - step*g);
@@ -109,13 +170,10 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 
 		/* Proceed in lon & lat: */
 		lola -= step*g;
-		//std::cout << "    step[" << i << "]: lola = (" << lola[0] << ","
-		//          << lola[1] << ")\n";
 	}
 
 	/* Polish the coordinate results: */
 	geo_t lp(compute_lambda_phi(lola));
-	//std::cout << "got (" << lp.lambda << "," << lp.phi << ")\n" << std::flush;
 
 
 	if (lp.lambda > PI)
