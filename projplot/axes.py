@@ -5,6 +5,17 @@ from .extensions import compute_axes_ticks, invert_proj, gradients_east_north
 from matplotlib.patches import Rectangle
 from matplotlib.collections import LineCollection
 
+def tick_text(tick: float, which: str = 'lon'):
+    """
+    Generate text for a tick.
+    """
+    # TODO Update this!
+    if abs(int(tick) - tick) < 1e-9:
+        # Integer tick.
+        return str(int(tick))
+    return str(tick)
+
+
 def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
                        tick_spacing=1.0, tick_bot='lon', tick_top='lon',
                        tick_left='lat', tick_right='lat', proj=None):
@@ -80,12 +91,16 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
 
     # Plot the ticklabels:
     for x,(tick,_) in zip(tick_x[:i0],ticks_bot):
-        ax.text(x, ylim[0]-margin_ticks, str(tick), ha='center', va='top')
+        ax.text(x, ylim[0]-margin_ticks, tick_text(tick),
+                ha='center', va='top')
     for x,(tick,_) in zip(tick_x[i0:i1],ticks_top):
-        ax.text(x, ylim[1]+margin_ticks, str(tick), ha='center', va='bottom')
+        ax.text(x, ylim[1]+margin_ticks, tick_text(tick),
+                ha='center', va='bottom')
     for y,(_,tick) in zip(tick_y[i1:i2],ticks_left):
-        ax.text(xlim[0]-margin_ticks, y, str(tick), ha='right', va='center')
+        ax.text(xlim[0]-margin_ticks, y, tick_text(tick),
+                ha='right', va='center')
     for y,(_,tick) in zip(tick_y[i2:],ticks_right):
-        ax.text(xlim[1]+margin_ticks, y, str(tick), ha='left', va='center')
+        ax.text(xlim[1]+margin_ticks, y, tick_text(tick),
+                ha='left', va='center')
 
     ax.set_axis_off()
