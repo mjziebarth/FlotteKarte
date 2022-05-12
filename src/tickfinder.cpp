@@ -136,10 +136,18 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 	for (auto il : int_levels){
 		xy_t xy(gen_xy(il.x));
 		geo_t lola0(ginv(xy));
+		if (tick == TICK_LON)
+			lola0.lambda = il.level * tick_spacing;
+		else
+			lola0.phi = il.level * tick_spacing;
 		geo_t lola(gradient_descent_inverse_project(proj, xy,
 		                                            lola0.lambda,
 		                                            lola0.phi));
-		res.push_back({rad2deg(lola.lambda), rad2deg(lola.phi)});
+		if (tick == TICK_LON)
+			res.push_back({il.level * tick_spacing, rad2deg(lola.phi)});
+		else
+			res.push_back({rad2deg(lola.lambda), il.level * tick_spacing});
+
 	}
 
 	return res;
