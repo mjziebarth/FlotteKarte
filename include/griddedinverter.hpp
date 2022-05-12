@@ -8,15 +8,7 @@
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point.hpp>
-//#include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/index/rtree.hpp>
-
-// to store queries results
-//#include <vector>
-
-// just for output
-//#include <iostream>
-//#include <boost/foreach.hpp>
 
 #ifndef PROJPLOT_GRIDDEDINVERTER_HPP
 #define PROJPLOT_GRIDDEDINVERTER_HPP
