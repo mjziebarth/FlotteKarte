@@ -52,11 +52,20 @@ int inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
 		#pragma omp parallel for
 		for (size_t i=0; i<Npoints; ++i){
 			xy_t xy({x[i], y[i]});
-			geo_t start(ginv(xy));
-			geo_t lola(gradient_descent_inverse_project(proj, xy, start.lambda,
-			                                            start.phi));
-			lon_lat[2*i] = rad2deg(lola.lambda);
-			lon_lat[2*i+1] = rad2deg(lola.phi);
+			try {
+				/* First try to use PROJ inverse of projection: */
+				geo_t lola(proj.inverse(xy));
+				lon_lat[2*i] = rad2deg(lola.lambda);
+				lon_lat[2*i+1] = rad2deg(lola.phi);
+			} catch (const ProjError& e) {
+				/* If this fails, invert with gradient descent: */
+				geo_t start(ginv(xy));
+				geo_t lola(gradient_descent_inverse_project(proj, xy,
+				                                            start.lambda,
+				                                            start.phi));
+				lon_lat[2*i] = rad2deg(lola.lambda);
+				lon_lat[2*i+1] = rad2deg(lola.phi);
+			}
 		}
 
 		#ifdef DEBUG
