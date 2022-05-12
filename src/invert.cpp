@@ -60,17 +60,19 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 		return dx * dx + dy * dy;
 	};
 
+	double cost_i = cost(lola);
 	auto gradient = [&](const vd_t& x) -> vd_t {
 		/* Numerical gradient. */
 		constexpr double delta = 1e-5;
 		const vd_t dx({delta, 0.0});
 		const vd_t dy({0.0, delta});
 		vd_t g;
-		/* Fourth-order accurate symmetric difference: */
-		g[0] = 1.0/(12*delta) * (-cost(x+2*dx) + 8*cost(x+dx)
-		                         - 8*cost(x-dx) + cost(x-2*dx));
-		g[1] = 1.0/(12*delta) * (-cost(x+2*dy) + 8*cost(x+dy)
-		                         - 8*cost(x-dy) + cost(x-2*dy));
+		/* Third-order accurate forward finite difference: */
+		constexpr double f3 = 1.0/3.0, f2 = -1.5, f1 = 3.0, f0 = 11.0/6.0;
+		g[0] = 1.0/delta * (f3*cost(x+3*dx) + f2*cost(x+2*dx)
+		                    + f1*cost(x+dx) - f0 * cost_i);
+		g[1] = 1.0/delta * (f3*cost(x+3*dy) + f2*cost(x+2*dy)
+		                    + f1*cost(x+dy) - f0 * cost_i);
 		return g;
 	};
 
@@ -78,7 +80,6 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 	constexpr int MAX_STEPS = 1000;
 	const eps_tolerance<double> tol(12);
 	double step = 0.1;
-	double cost_i = cost(lola);
 	int i, m=0;
 	for (i=0; i<MAX_STEPS; ++i){
 		if (cost_i < 1e-30){
@@ -93,7 +94,7 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 		 * There, we might have a super slim valley: gradients in
 		 * latitude direction are very steep but the longitude
 		 * (which remains indetermined) direction is very shallow. */
-		if (m >= 40){
+		if (m >= 20){
 			auto cost_lon = [&](double lambda)->double {
 				const geo_t geo(compute_lambda_phi(vd_t({lambda,
 						                                 lola[1]})));
@@ -142,7 +143,7 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 		/* Make sure that we choose a step size that reduces the cost: */
 		double cost_n0 = cost(lola - step*g);
 		while (cost_n0 > cost_i && lina::norm(step*g) > 1e-16){
-			step *= 0.5;
+			step *= 0.125;
 			cost_n0 = cost(lola - step*g);
 		}
 
