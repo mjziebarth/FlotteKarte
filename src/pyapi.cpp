@@ -23,15 +23,12 @@ using projplot::gradient_descent_inverse_project;
 
 }*/
 
-void inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
+int inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
                                    const double* x, const double* y,
-                                   double lon0, double lat0,
                                    double* lon_lat)
 {
 	/* Initialize the projection: */
 	#ifdef DEBUG
-	std::cout << "  lon0 = " << lon0 << "\n";
-	std::cout << "  lat0 = " << lat0 << "\n";
 	std::cout << "initializing proj wrapper\n" << std::flush;
 	#endif
 	try {
@@ -56,9 +53,13 @@ void inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
 		#ifdef DEBUG
 		std::cout << "cleaning up!\n" << std::flush;
 		#endif
+
+		/* Success: */
+		return 0;
 	} catch (...) {
 		#ifdef DEBUG
 		std::cout << "error occurred.\n" << std::flush;
 		#endif
+		return 1;
 	}
 }
