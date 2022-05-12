@@ -35,7 +35,7 @@ const char* ProjError::what() const noexcept
 
 
 PJContainer::PJContainer(const char* proj_str)
-   : context(nullptr), projection(nullptr)
+   : context(nullptr), projection(nullptr), _a(0.0), _f(0.0)
 {
 	std::cout << "proj_str: '" << proj_str << "'\n" << std::flush;
 	/* Create the multi-threading context: */
@@ -49,6 +49,37 @@ PJContainer::PJContainer(const char* proj_str)
 	if (!projection){
 		throw ProjError("Could not create PROJ string.");
 	}
+
+	/* Get the ellipsoid through the CRS: */
+	PJ* crs = proj_get_source_crs(context, projection);
+	if (!crs){
+		/* Assume GRS80 like PROJ default. */
+		_a = 6378137.0;
+		_f = 1.0 / 298.257222101;
+	} else {
+		PJ* ellps = proj_get_ellipsoid(context, crs);
+		if (!ellps){
+			proj_destroy(crs);
+			throw ProjError("Could not obtain ellipsoid.");
+		}
+
+		/* Get the ellipsoid parameters: */
+		double rf;
+		int rc = proj_ellipsoid_get_parameters(context, ellps, &_a, NULL, NULL,
+			                                   &rf);
+
+		/* Cleanup: */
+		proj_destroy(ellps);
+		proj_destroy(crs);
+
+		/* Check success: */
+		if (!rc){
+			throw ProjError("Could not obtain ellipsoid parameters.");
+		}
+
+		_f = 1.0 / rf;
+	}
+
 }
 
 
@@ -61,10 +92,25 @@ PJContainer::~PJContainer() {
 	}
 }
 
+
 const PJ* PJContainer::get() const
 {
 	return projection;
 }
+
+
+double PJContainer::a() const
+{
+	return _a;
+}
+
+
+double PJContainer::f() const
+{
+	return _f;
+}
+
+
 
 
 
@@ -132,4 +178,16 @@ xy_t ProjWrapper::project(double lon, double lat) const
 	PJ_COORD to(proj_trans(workhorse, PJ_FWD, from));
 	return {to.xy.x, to.xy.y};
 	//return {lon, lat};
+}
+
+
+double ProjWrapper::a() const
+{
+	return proj_source->a();
+}
+
+
+double ProjWrapper::f() const
+{
+	return proj_source->f();
 }

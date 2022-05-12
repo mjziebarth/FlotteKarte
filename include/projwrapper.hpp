@@ -33,9 +33,14 @@ public:
     ~PJContainer();
     const PJ* get() const;
 
+	double a() const;
+	double f() const;
+
 private:
     PJ_CONTEXT* context;
     PJ* projection;
+    double _a;
+    double _f;
 };
 
 
@@ -48,6 +53,9 @@ public:
 
     void project(double lon, double lat, double& x, double& y) const;
     xy_t project(double lon, double lat) const;
+
+	double a() const;
+	double f() const;
 
 private:
     std::shared_ptr<PJContainer> proj_source;
