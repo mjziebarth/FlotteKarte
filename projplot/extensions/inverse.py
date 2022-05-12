@@ -3,6 +3,7 @@
 import numpy as np
 from typing import Optional
 from .cdll import _cdll
+from ctypes import c_double, POINTER, c_char_p, c_ulong
 
 
 def invert_proj(proj_str: str, x: np.ndarray, y: np.ndarray,
