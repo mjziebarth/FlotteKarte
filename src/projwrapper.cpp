@@ -7,7 +7,25 @@
 
 using projplot::PJContainer;
 using projplot::ProjWrapper;
+using projplot::ProjError;
 using projplot::xy_t;
+
+/**************************
+ *
+ *    ProjError
+ *
+ **************************/
+
+ProjError::ProjError(const char* msg) : msg(msg)
+{}
+
+const char* ProjError::what() const noexcept
+{
+	return msg;
+}
+
+
+
 
 /**************************
  *
@@ -23,13 +41,13 @@ PJContainer::PJContainer(const char* proj_str)
 	/* Create the multi-threading context: */
 	context = proj_context_create();
 	if (!context){
-		throw std::runtime_error("Could not create multithreading context.");
+		throw ProjError("Could not create multithreading context.");
 	}
 
 	/* Create the projection: */
 	projection = proj_create(context, proj_str);
 	if (!projection){
-		throw std::runtime_error("Could not create PROJ string.");
+		throw ProjError("Could not create PROJ string.");
 	}
 }
 

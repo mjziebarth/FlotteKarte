@@ -12,6 +12,20 @@
 
 namespace projplot {
 
+/* An exception class for PROJ errors: */
+class ProjError : public std::exception
+{
+public:
+	ProjError(const char* msg);
+
+	virtual const char* what() const noexcept;
+
+private:
+	const char* msg;
+};
+
+
+
 /* A container for an originally created PJ object: */
 class PJContainer {
 public:
