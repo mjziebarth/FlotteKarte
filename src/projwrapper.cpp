@@ -9,6 +9,7 @@ using projplot::PJContainer;
 using projplot::ProjWrapper;
 using projplot::ProjError;
 using projplot::xy_t;
+using projplot::geo_t;
 
 /**************************
  *
@@ -185,6 +186,19 @@ xy_t ProjWrapper::project(const geo_t& lola) const
 	PJ_COORD from(proj_coord(lola.lambda, lola.phi, 0.0, 0.0));
 	PJ_COORD to(proj_trans(workhorse, PJ_FWD, from));
 	return {to.xy.x, to.xy.y};
+}
+
+geo_t ProjWrapper::inverse(const xy_t& xy) const
+{
+	if (proj_errno(workhorse))
+		throw ProjError("Error state set before inverse.");
+	PJ_COORD from(proj_coord(xy.x, xy.y, 0.0, 0.0));
+	PJ_COORD to(proj_trans(workhorse, PJ_INV, from));
+	int err = proj_errno(workhorse);
+	if (err){
+		throw ProjError(proj_context_errno_string(context, err));
+	}
+	return {to.lp.lam, to.lp.phi};
 }
 
 

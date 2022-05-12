@@ -55,6 +55,8 @@ public:
     xy_t project(double lon, double lat) const;
 	xy_t project(const geo_t& lola) const;
 
+	geo_t inverse(const xy_t& xy_t) const;
+
 	double a() const;
 	double f() const;
 
