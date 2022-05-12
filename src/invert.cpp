@@ -151,21 +151,23 @@ projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
 		}
 
 		/* Compare costs for different variations of step size: */
-		const double cost_n1 = cost(lola - 1.1*step*g);
-		const double cost_n2 = cost(lola - 0.9*step*g);
-		if (cost_n1 < cost_n0){
-			if (cost_n1 < cost_n2){
+		constexpr double ADJ = 1.5;
+		if ((i % 2) == 0){
+			const double cost_n1 = cost(lola - ADJ*step*g);
+			if (cost_n1 < cost_n0){
+				step *= ADJ;
 				cost_i = cost_n1;
-				step *= 1.1;
 			} else {
-				cost_i = cost_n2;
-				step *= 0.9;
+				cost_i = cost_n0;
 			}
-		} else if (cost_n2 < cost_n0){
-			cost_i = cost_n1;
-			step *= 0.9;
 		} else {
-			cost_i = cost_n0;
+			const double cost_n1 = cost(lola - 1.0/ADJ*step*g);
+			if (cost_n1 < cost_n0){
+				step *= 1.0/ADJ;
+				cost_i = cost_n1;
+			} else {
+				cost_i = cost_n0;
+			}
 		}
 
 		/* Proceed in lon & lat: */
