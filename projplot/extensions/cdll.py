@@ -2,7 +2,6 @@
 
 import pathlib
 import numpy as np
-from typing import Optional
 from ctypes import CDLL, c_double, c_size_t, c_uint, POINTER, c_ushort,\
                    c_char_p, c_ulong
 

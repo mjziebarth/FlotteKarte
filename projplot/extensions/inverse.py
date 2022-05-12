@@ -1,6 +1,7 @@
 # Invert a PROJ projection using optimization.
 
 import numpy as np
+from typing import Optional
 from .cdll import _cdll
 
 
