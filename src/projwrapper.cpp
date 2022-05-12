@@ -180,6 +180,13 @@ xy_t ProjWrapper::project(double lon, double lat) const
 	//return {lon, lat};
 }
 
+xy_t ProjWrapper::project(const geo_t& lola) const
+{
+	PJ_COORD from(proj_coord(lola.lambda, lola.phi, 0.0, 0.0));
+	PJ_COORD to(proj_trans(workhorse, PJ_FWD, from));
+	return {to.xy.x, to.xy.y};
+}
+
 
 double ProjWrapper::a() const
 {
