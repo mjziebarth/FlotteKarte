@@ -1,3 +1,2 @@
 
-
-from .extensions import *
+from .projplot import ProjPlot
