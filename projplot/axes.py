@@ -50,6 +50,8 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
         if h == hpatch:
             continue
         try:
+            # TODO: Here we have to check whether a clip path is already
+            # set! If so, we have to combine both clips:
             h.set_clip_path(ax_rect)
         except:
             for h1 in h:
