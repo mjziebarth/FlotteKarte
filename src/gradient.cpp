@@ -31,6 +31,7 @@ void Gradient<FORWARD_5POINT>::compute_gradients(const ProjWrapper& proj,
 	const xy_t xy(proj.project(coord));
 
 	/* Longitude stencil: */
+	const double idel = 1.0 / delta;
 	const double& la = coord.lambda;
 	const double& ph = coord.phi;
 	const xy_t xy_dlon1(proj.project(geo_t({la +   sign_lon*delta, ph})));
@@ -38,9 +39,9 @@ void Gradient<FORWARD_5POINT>::compute_gradients(const ProjWrapper& proj,
 	const xy_t xy_dlon3(proj.project(geo_t({la + 3*sign_lon*delta, ph})));
 	const xy_t xy_dlon4(proj.project(geo_t({la + 4*sign_lon*delta, ph})));
 	_gx_east = (-0.25 * xy_dlon4.x + 4.0/3.0 * xy_dlon3.x - 3.0 * xy_dlon2.x
-	            + 4.0 * xy_dlon1.x - 25.0/12.0 * xy.x);
+	            + 4.0 * xy_dlon1.x - 25.0/12.0 * xy.x) * idel;
 	_gy_east = (-0.25 * xy_dlon4.y + 4.0/3.0 * xy_dlon3.y - 3.0 * xy_dlon2.y
-	            + 4.0 * xy_dlon1.y - 25.0/12.0 * xy.y);
+	            + 4.0 * xy_dlon1.y - 25.0/12.0 * xy.y) * idel;
 
 	/* Latitude stencil: */
 	const xy_t xy_dlat1(proj.project(geo_t({la, ph +   sign_lat*delta})));
@@ -48,9 +49,9 @@ void Gradient<FORWARD_5POINT>::compute_gradients(const ProjWrapper& proj,
 	const xy_t xy_dlat3(proj.project(geo_t({la, ph + 3*sign_lat*delta})));
 	const xy_t xy_dlat4(proj.project(geo_t({la, ph + 4*sign_lat*delta})));
 	_gx_north = (-0.25 * xy_dlat4.x + 4.0/3.0 * xy_dlat3.x - 3.0 * xy_dlat2.x
-	             + 4.0 * xy_dlat1.x - 25.0/12.0 * xy.x);
+	             + 4.0 * xy_dlat1.x - 25.0/12.0 * xy.x) * idel;
 	_gy_north = (-0.25 * xy_dlat4.y + 4.0/3.0 * xy_dlat3.y - 3.0 * xy_dlat2.y
-	             + 4.0 * xy_dlat1.y - 25.0/12.0 * xy.y);
+	             + 4.0 * xy_dlat1.y - 25.0/12.0 * xy.y) * idel;
 
 	/* Now handle the transformation of lon/lat onto the ellipsoid surface.
 	 * Also correct the sign for backwards finite difference that we may have
