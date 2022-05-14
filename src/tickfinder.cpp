@@ -131,6 +131,58 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 	std::vector<integer_level> int_levels
 	   = compute_integer_levels(fun, zmin, zmax);
 
+	auto ax_label = [](axis_t ax) -> const char* {
+		if (ax == AX_BOT)
+			return "bot";
+		else if (ax == AX_TOP)
+			return "top";
+		else if (ax == AX_LEFT)
+			return "left";
+		else if (ax == AX_RIGHT)
+			return "right";
+	};
+
+	/* Here we sort out some possible duplicates.
+	 * We collect all of the ticks within `int_levels`
+	 * into vectors of the same long `level`.
+	 * Within these vector bins, we collect only 'unique' ticks,
+	 * that is, ticks which are further than 1e-2*(zmax-zmin)
+	 * apart in map coordinates.
+	 */
+	const double min_spacing = 1e-2*std::max(xmax-xmin, ymax-ymin);
+	std::map<long,std::vector<double>> multilevels;
+	for (auto it = int_levels.begin(); it != int_levels.end(); ++it) {
+		auto find = multilevels.find(it->level);
+		if (find != multilevels.cend()){
+			/* There is already at least one tick of that level.
+			 * Check all existing links: */
+			bool unique = true;
+			for (double x : find->second){
+				if (std::abs(x - it->x) < min_spacing){
+					/* Another very close tick exists. Not unique tick,
+					 * keep the other! */
+					unique = false;
+					break;
+				}
+			}
+			if (unique){
+				/* Keep in list. */
+				find->second.push_back(it->x);
+			}
+		} else {
+			/* First or unique one: */
+			auto it2 = multilevels.emplace(it->level, 0).first;
+			it2->second.push_back(it->x);
+		}
+	}
+	int_levels.clear();
+	for (auto ticks : multilevels) {
+		for (double x : ticks.second) {
+			int_levels.emplace_back(x, ticks.first);
+		}
+	}
+
+
 	std::vector<geo_degrees_t> res;
 	res.reserve(int_levels.size());
 	for (auto il : int_levels){
