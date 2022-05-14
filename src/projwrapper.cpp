@@ -4,6 +4,8 @@
 
 #include <../include/projwrapper.hpp>
 #include <iostream>
+#include <string>
+#include <cstring>
 
 using projplot::PJContainer;
 using projplot::ProjWrapper;
@@ -34,6 +36,62 @@ const char* ProjError::what() const noexcept
  *
  **************************/
 
+/* A very simple parser to obtain information about a and f from
+ * a proj string. */
+static void parse_proj_str_for_a_f(const char* proj_str, double& a, double& f)
+{
+	if (!proj_str)
+		return;
+
+	const char* c = proj_str;
+	// 10000 characters should be fairly much enough for
+	// a proj string.
+	const size_t maxlen = strnlen(c, 10000);
+
+	if (maxlen < 2){
+		/* No possibility to place a keyword here. */
+		return;
+	}
+
+	auto readkeyword = [&](char key, double& to) {
+		size_t i0=0;
+		for (size_t i=0; i<maxlen-2; ++i){
+			if (c[i] == '\0')
+				break;
+			if ((i == 0) && (c[i] == key) && (c[i+1] == '=')){
+				i0 = 2;
+				break;
+			} else if ((c[i] == '+' || c[i] == ' ') && c[i+1] == key
+			           && c[i+2] == '=')
+			{
+				i0 = i+3;
+				break;
+			}
+		}
+		size_t i1 = maxlen; // maxlen >= 2 as per check above
+		for (size_t i=i0; i<maxlen; ++i){
+			if (c[i] == '\0' || c[i] == ' '){
+				i1 = i;
+				break;
+			}
+		}
+		if ((i1 - i0) > 0) {
+			try {
+				std::string s(c+i0, i1-i0);
+				double d = std::stod(s);
+				if (d > 0)
+					to = d;
+			} catch (...) {
+				/* Do nothing. */
+			}
+		}
+	};
+
+	readkeyword('a',a);
+	readkeyword('f',f);
+}
+
+
 
 PJContainer::PJContainer(const char* proj_str)
    : context(nullptr), projection(nullptr), _a(0.0), _f(0.0)
@@ -57,6 +115,17 @@ PJContainer::PJContainer(const char* proj_str)
 		/* Assume GRS80 like PROJ default. */
 		_a = 6378137.0;
 		_f = 1.0 / 298.257222101;
+
+		/* Finally, try reading the ellipsoid parameters directly.
+		 * If they are given as a=.. and f=.. in a PROJ string,
+		 * no source CRS will be created for the PJ instance.
+		 * So, `projection` will know the ellipsoid parameters
+		 * but there is (likely?) no standard API way to obtain
+		 * them from PJ.
+		 * Instead, parse the PROJ string directly:
+		 */
+		parse_proj_str_for_a_f(proj_str, _a, _f);
+
 	} else {
 		PJ* ellps = proj_get_ellipsoid(context, crs);
 		if (!ellps){
