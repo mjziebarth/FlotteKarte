@@ -50,7 +50,7 @@ compute_integer_levels(std::function<double(double)> fun, double x0, double x1)
 		long yintr = std::floor(yr);
 		if (yintl != yintr){
 			/* Found a transition! */
-			long yt = std::max(yl,yr);
+			long yt = std::max(yintl,yintr);
 			auto rootfun = [&](double x) -> double {
 				return fun(x) - yt;
 			};
