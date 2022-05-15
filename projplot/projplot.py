@@ -45,11 +45,12 @@ class ProjPlot:
     def plot_axes(self, tick_spacing: float = 1.0,
                   tick_bot: str = 'lon', tick_top: str = 'lon',
                   tick_left:str = 'lat', tick_right: str = 'lat',
-                  linewidth: float = 0.8):
+                  linewidth: float = 0.8, fontsize: float = 8.0):
         """
         Add axes and ticks to the plot.
         """
         generate_axes_grid(self.ax, self.xlim, self.ylim, self.proj_str,
                            tick_spacing=tick_spacing, tick_bot=tick_bot,
                            tick_top=tick_top, tick_left=tick_left,
-                           tick_right=tick_right, proj=self.proj)
+                           tick_right=tick_right, proj=self.proj,
+                           fontsize=fontsize)

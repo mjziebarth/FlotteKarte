@@ -18,7 +18,8 @@ def tick_text(tick: float, which: str = 'lon'):
 
 def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
                        tick_spacing=1.0, tick_bot='lon', tick_top='lon',
-                       tick_left='lat', tick_right='lat', proj=None):
+                       tick_left='lat', tick_right='lat', proj=None,
+                       fontsize=8):
     """
     Generates the axes grid.
     """
