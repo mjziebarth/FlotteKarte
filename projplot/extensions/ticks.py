@@ -6,9 +6,9 @@ from ctypes import c_double, POINTER, c_char_p, c_uint, c_ubyte
 
 def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
                        ymax: float, tick_spacing: float,
-                       bot='lon', top='lon', left='lat',
-                       right='lat') -> tuple[np.ndarray,np.ndarray,
-                                             np.ndarray,np.ndarray]:
+                       bot: str = 'lon', top: str = 'lon', left: str = 'lat',
+                       right: str = 'lat') -> tuple[np.ndarray,np.ndarray,
+                                                    np.ndarray,np.ndarray]:
     """
 
     """
