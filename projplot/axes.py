@@ -70,7 +70,8 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
     # Plot the ticks:
     if proj is None:
         proj = Proj(proj_str)
-    tick_x, tick_y = proj(*np.concatenate((ticks_bot, ticks_top, ticks_left, ticks_right)).T)
+    tick_x, tick_y = proj(*np.concatenate((ticks_bot, ticks_top, ticks_left,
+                                           ticks_right)).T)
 
     tick_id = np.zeros(tick_x.size, dtype=int)
     i0 = len(ticks_bot)
@@ -80,31 +81,59 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
     tick_id[i1:i2] = 2
     tick_id[i2:] = 3
     tick_lon, tick_lat = invert_proj(proj_str, tick_x, tick_y)
-    tick_dir_east, tick_dir_north = gradients_east_north(proj_str, tick_lon, tick_lat)
+    tick_dir_east, tick_dir_north = gradients_east_north(proj_str, tick_lon,
+                                                         tick_lat)
     # Ensure the right direction (pointing outward of the map) for all ticks:
-    tick_dir_north[:i0][tick_dir_north[:i0,1] > 0,:] *= -1
-    tick_dir_north[i0:i1][tick_dir_north[i0:i1,1] < 0,:] *= -1
-    tick_dir_east[i1:i2][tick_dir_east[i1:i2,0] > 0,:] *= -1
-    tick_dir_east[i2:][tick_dir_east[i2:,0] < 0,:] *= -1
+    tick_off = np.zeros((tick_x.size,2))
+    # Bottom:
+    if tick_bot == 'lat':
+        tick_off[:i0,:] = tick_dir_east[:i0,:]
+    else:
+        tick_off[:i0,:] = tick_dir_north[:i0,:]
+    tick_off[:i0][tick_off[:i0,1] > 0,:] *= -1
+
+    # Top:
+    if tick_top == 'lat':
+        tick_off[i0:i1,:] = tick_dir_east[i0:i1,:]
+    else:
+        tick_off[i0:i1,:] = tick_dir_north[i0:i1,:]
+    tick_off[i0:i1][tick_off[i0:i1,1] < 0,:] *= -1
+
+    # Left:
+    if tick_left == 'lat':
+        tick_off[i1:i2,:] = tick_dir_east[i1:i2,:]
+    else:
+        tick_off[i1:i2,:] = tick_dir_north[i1:i2,:]
+    tick_off[i1:i2][tick_off[i1:i2,0] > 0,:] *= -1
+
+    # Right
+    if tick_right == 'lat':
+        tick_off[i2:,:] = tick_dir_east[i2:,:]
+    else:
+        tick_off[i2:,:] = tick_dir_north[i2:,:]
+    tick_off[i2:][tick_off[i2:,0] < 0,:] *= -1
+
     tl = margin_ticks
-    tick_dir_east *= tl / np.linalg.norm(tick_dir_east, axis=1)[:,np.newaxis]
-    tick_dir_north *= tl / np.linalg.norm(tick_dir_north, axis=1)[:,np.newaxis]
-    ticks = [[[x,y],[x+gn[0],y+gn[1]]] if i < 2 else [[x,y],[x+ge[0],y+ge[1]]]
-             for x,y,i,ge,gn in zip(tick_x, tick_y, tick_id, tick_dir_east, tick_dir_north)]
+    tick_off *= tl / np.linalg.norm(tick_off, axis=1)[:,np.newaxis]
+    ticks = [[[x,y],[x+g[0],y+g[1]]] for x,y,g in zip(tick_x, tick_y, tick_off)]
     ax.add_collection(LineCollection(ticks, color='k', linewidth=linewidth))
 
     # Plot the ticklabels:
-    for x,(tick,_) in zip(tick_x[:i0],ticks_bot):
-        ax.text(x, ylim[0]-margin_ticks, tick_text(tick),
-                ha='center', va='top')
-    for x,(tick,_) in zip(tick_x[i0:i1],ticks_top):
-        ax.text(x, ylim[1]+margin_ticks, tick_text(tick),
-                ha='center', va='bottom')
-    for y,(_,tick) in zip(tick_y[i1:i2],ticks_left):
-        ax.text(xlim[0]-margin_ticks, y, tick_text(tick),
-                ha='right', va='center')
-    for y,(_,tick) in zip(tick_y[i2:],ticks_right):
-        ax.text(xlim[1]+margin_ticks, y, tick_text(tick),
-                ha='left', va='center')
+    for x,tick in zip(tick_x[:i0] + tick_off[:i0,0], ticks_bot):
+        ax.text(x, ylim[0]-margin_ticks,
+                tick_text(tick[int(tick_bot == 'lat')], which=tick_bot),
+                ha='center', va='top', fontsize=fontsize)
+    for x,tick in zip(tick_x[i0:i1] + tick_off[i0:i1,0], ticks_top):
+        ax.text(x, ylim[1]+margin_ticks,
+                tick_text(tick[int(tick_top == 'lat')], which=tick_top),
+                ha='center', va='bottom', fontsize=fontsize)
+    for y,tick in zip(tick_y[i1:i2] + tick_off[i1:i2,1], ticks_left):
+        ax.text(xlim[0]-margin_ticks, y,
+                tick_text(tick[int(tick_right == 'lat')], which=tick_right),
+                ha='right', va='center', fontsize=fontsize)
+    for y,tick in zip(tick_y[i2:] + tick_off[i2:,1], ticks_right):
+        ax.text(xlim[1]+margin_ticks, y,
+                tick_text(tick[int(tick_left == 'lat')], which=tick_right),
+                ha='left', va='center', fontsize=fontsize)
 
     ax.set_axis_off()
