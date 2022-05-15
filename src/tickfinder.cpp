@@ -28,13 +28,12 @@ struct integer_level {
 	{};
 };
 
+/* Root finding configuration: */
+static const eps_tolerance<double> tol(26);
 
 static std::vector<integer_level>
 compute_integer_levels(std::function<double(double)> fun, double x0, double x1)
 {
-	/* Root finding configuration: */
-	const eps_tolerance<double> tol(8);
-
 	/* Very simple grid search to identify all the rounded integers: */
 	std::vector<integer_level> levels;
 	const double dx = (x1 - x0) / 1000.0;
@@ -52,14 +51,18 @@ compute_integer_levels(std::function<double(double)> fun, double x0, double x1)
 			/* Found a transition! */
 			long yt = std::max(yintl,yintr);
 			auto rootfun = [&](double x) -> double {
-				return fun(x) - yt;
+				return fun(x) - static_cast<double>(yt);
 			};
-			std::uintmax_t max_iter(40);
+			std::uintmax_t max_iter(100);
 			try {
 				std::pair<double,double> xtlr
 				   = toms748_solve(rootfun, xl, xr, tol, max_iter);
 
-				levels.emplace_back(0.5*(xtlr.first + xtlr.second), yt);
+				/* Check the integer level quality: */
+				double zprop = 0.5 * (xtlr.first + xtlr.second);
+				if (std::abs(rootfun(zprop)) < 1e-5){
+					levels.emplace_back(0.5*(xtlr.first + xtlr.second), yt);
+				}
 			} catch (...) {
 				/* Something went wrong. Better skip the tick than to
 				 * panic Python. */
@@ -100,14 +103,24 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 		return xy;
 	};
 
+	auto invert = [&](const xy_t& xy) -> geo_t {
+		geo_t lola;
+		try {
+			lola = proj.inverse(xy);
+		} catch (const ProjError& e) {
+			geo_t lola0(ginv(xy));
+			lola = gradient_descent_inverse_project(proj, xy, lola0.lambda,
+			                                        lola0.phi);
+		}
+		return lola;
+	};
+
 	auto fun = [&](double z) -> double {
 		/* Get the current location on the map (boundary): */
 		xy_t xy(gen_xy(z));
 
 		/* Invert: */
-		geo_t lola0(ginv(xy));
-		geo_t lola(gradient_descent_inverse_project(proj, xy, lola0.lambda,
-		                                            lola0.phi));
+		geo_t lola(invert(xy));
 
 		/* Return the relevant coordinate scaled to spacing: */
 		if (tick == TICK_LON){
@@ -141,6 +154,58 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 		else if (ax == AX_RIGHT)
 			return "right";
 	};
+
+	/* Check whether the 180°=-180° meridian can be part of the
+	 * tick set: */
+	if (tick == TICK_LON){
+		for (size_t i=0; i<int_levels.size()-1; ++i){
+			if (((int_levels[i].level <= 0) != (int_levels[i+1].level <= 0))
+			    && (std::abs(int_levels[i].level - int_levels[i+1].level) > 2))
+			{
+				/* We cross the 180° meridian. Try to add it to the tick set: */
+				auto fun2 = [&](double phi) -> double {
+					if (ax == AX_BOT)
+						return proj.project(PI, phi).y - ymin;
+					else if (ax == AX_TOP)
+						return proj.project(PI, phi).y - ymax;
+					else if (ax == AX_LEFT)
+						return proj.project(PI, phi).x - xmin;
+					else if (ax == AX_RIGHT)
+						return proj.project(PI, phi).x - xmax;
+				};
+
+				/* First estimate of phi and finding a bracketing interval: */
+				const double z0 = 0.5 * (int_levels[i].x + int_levels[i+1].x);
+				const double phi0 = invert(gen_xy(z0)).phi;
+				double dp = 5e-6;
+				double phi_min, phi_max;
+				bool success = false;
+				for (int i=0; i<20; ++i){
+					dp *= 2.0;
+					phi_min = std::max(phi0 - dp, -PI/2);
+					phi_max = std::min(phi0 + dp, PI/2);
+					if ((fun2(phi_min) <= 0) != (fun2(phi_max) <= 0)){
+						success = true;
+						break;
+					}
+				}
+
+				if (success){
+					/* Use TOMS 748 to find the correct phi: */
+					std::uintmax_t max_iter = 40;
+					std::pair<double,double> phi180b
+					   = toms748_solve(fun2, phi_min, phi_max, tol, max_iter);
+					double phi180 = 0.5 * (phi180b.first + phi180b.second);
+
+					/* Add to ticks: */
+					int_levels.push_back({proj.project(PI, phi180).x,
+					                      std::round(180.0 / tick_spacing)});
+				}
+
+				break;
+			}
+		}
+	}
 
 	/* Here we sort out some possible duplicates.
 	 * We collect all of the ticks within `int_levels`
@@ -186,15 +251,7 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 	std::vector<geo_degrees_t> res;
 	res.reserve(int_levels.size());
 	for (auto il : int_levels){
-		xy_t xy(gen_xy(il.x));
-		geo_t lola0(ginv(xy));
-		if (tick == TICK_LON)
-			lola0.lambda = il.level * tick_spacing;
-		else
-			lola0.phi = il.level * tick_spacing;
-		geo_t lola(gradient_descent_inverse_project(proj, xy,
-		                                            lola0.lambda,
-		                                            lola0.phi));
+		geo_t lola(invert(gen_xy(il.x)));
 		if (tick == TICK_LON)
 			res.push_back({il.level * tick_spacing, rad2deg(lola.phi)});
 		else
