@@ -57,13 +57,15 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
             for h1 in h:
                 h.set_clip_path(ax_rect)
 
-    if any(t not in ('lon','lat',None) for t in [tick_bot, tick_top, tick_left, tick_right]):
+    if any(t not in ('lon','lat',None) for t in [tick_bot, tick_top, tick_left,
+                                                 tick_right]):
         raise ValueError("Only 'lon', 'lat', or None are valid values for tick_* parameters.")
 
 
     # Compute ticks:
     ticks_bot, ticks_top, ticks_left, ticks_right \
-       = compute_axes_ticks(proj_str, *xlim, *ylim, tick_spacing)
+       = compute_axes_ticks(proj_str, *xlim, *ylim, tick_spacing, bot=tick_bot,
+                            top=tick_top, left=tick_left, right=tick_right)
 
     # Plot the ticks:
     if proj is None:
