@@ -12,7 +12,12 @@ def tick_text(tick: float, which: str = 'lon'):
     # TODO Update this!
     if abs(int(tick) - tick) < 1e-9:
         # Integer tick.
-        return str(int(tick))
+        if which == 'lon':
+            suffix = "° E" if tick > 0 else "° W"
+            return str(abs(int(tick))) + suffix
+        else:
+            suffix = "° N" if tick > 0 else "° S"
+            return str(abs(int(tick))) + suffix
     return str(tick)
 
 
