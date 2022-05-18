@@ -8,6 +8,7 @@
 #include <../include/griddedinverter.hpp>
 #include <../include/gradient.hpp>
 #include <../include/tickfinder.hpp>
+#include <../include/grid.hpp>
 #include <iostream>
 
 using projplot::xy_t;
@@ -16,10 +17,12 @@ using projplot::axis_t;
 using projplot::tick_t;
 using projplot::rad2deg;
 using projplot::deg2rad;
+using projplot::path_xy_t;
 using projplot::ProjError;
 using projplot::ProjWrapper;
 using projplot::geo_degrees_t;
 using projplot::GriddedInverter;
+using projplot::generate_grid_lines;
 using projplot::gradient_descent_inverse_project;
 using projplot::compute_ticks;
 using projplot::Gradient;
@@ -213,4 +216,131 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 		#endif
 		return 1;
 	}
+}
+
+struct grid_lines_t {
+	std::vector<path_xy_t> paths;
+};
+
+/*
+ * This is the first of a two-part function. Computes grid lines according to
+ * settings (projection, x- & ylim, tick spacing, bisection offset,
+ * minimum distance between path-adjacent nodes) and returns 1) the length
+ * of the resulting path (Npath) and 2) a pointer to the structure holding
+ * all the required information (struct_ptr).
+ * It has to be followed, after allocating two suitable numpy arrays,
+ * by a call to save_grid_lines, which transfers the path contained in
+ * struct_ptr and frees the allocated space. If this call is omitted, a memory
+ * leak will occur. If this call a second time, unallocated memory will be
+ * accessed.
+ */
+int compute_grid_lines(const char* proj_str, double xmin, double xmax,
+                       double ymin, double ymax, int tick_spacing_degree,
+                       double bisection_offset, double minimum_node_distance,
+                       double max_lat, void** struct_ptr, size_t* Npath)
+{
+	/* Empty initialization: */
+	if (!struct_ptr){
+		std::cerr << "No pointer to write struct given.\n";
+		return 3;
+	}
+	if (!Npath){
+		std::cerr << "No pointer to write Npath given.\n";
+		return 4;
+	}
+	*struct_ptr = nullptr;
+	*Npath = 0;
+
+	try {
+		/* Create the projection wrapper: */
+		ProjWrapper proj(proj_str);
+
+		/* Generate the grid lines structure: */
+		grid_lines_t* glines = new grid_lines_t();
+
+		/* Save it to the output pointer: */
+		*struct_ptr = static_cast<void*>(glines);
+
+		/* Compute the grid lines: */
+		try {
+			glines->paths = generate_grid_lines(proj, xmin, xmax, ymin, ymax,
+			                                    tick_spacing_degree,
+			                                    bisection_offset,
+			                                    minimum_node_distance, max_lat);
+
+		} catch (...) {
+			/* Clean up: */
+			delete glines;
+			struct_ptr = nullptr;
+
+			return 1;
+		}
+
+		/* Compute the number of grid lines: */
+		size_t npath = 0;
+		for (const path_xy_t& path : glines->paths){
+			npath += path.size();
+		}
+		*Npath = npath;
+
+		/* Success. */
+		return 0;
+
+	} catch (const ProjError& err){
+		/* Could not create the projection object: */
+		std::cerr << "ProjError: " << err.what() << "\n";
+		return 2;
+	}
+}
+
+constexpr uint8_t MPL_MOVETO = 1;
+constexpr uint8_t MPL_LINETO = 2;
+
+/*
+ * Second part of a two-part function. Call exactly one time after
+ * compute_grid_lines has successfully completed.
+ */
+int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes)
+{
+	/* Cast the struct: */
+	if (struct_ptr == nullptr)
+		return 1;
+	const grid_lines_t& glines = *static_cast<const grid_lines_t*>(struct_ptr);
+
+	/* Fill the vertices and codes arrays: */
+	for (const path_xy_t& path : glines.paths){
+		for (size_t i=0; i<path.size(); ++i){
+			/* Set the code: */
+			if (i == 0){
+				*codes = MPL_MOVETO;
+			} else {
+				*codes = MPL_LINETO;
+			}
+
+			/* Set the vertices: */
+			*vertices = path[i].x;
+			++vertices;
+			*vertices = path[i].y;
+
+			/* Advance: */
+			++codes;
+			++vertices;
+		}
+	}
+
+	/* Success. */
+	return 0;
+}
+
+int clean_grid_lines_struct(void* struct_ptr)
+{
+	if (struct_ptr == nullptr)
+		return 1;
+
+	/* Delete the grid_lines_t struct, calling all necessary destructors: */
+	grid_lines_t* glines = static_cast<grid_lines_t*>(struct_ptr);
+	delete glines;
+
+	/* Success. */
+	return 0;
 }

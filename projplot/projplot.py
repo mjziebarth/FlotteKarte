@@ -6,6 +6,7 @@ from pyproj import Proj
 
 # Import of functionality from other source files of this package:
 from .axes import generate_axes_grid
+from .grid import plot_grid
 
 
 class ProjPlot:
@@ -54,3 +55,14 @@ class ProjPlot:
                            tick_top=tick_top, tick_left=tick_left,
                            tick_right=tick_right, proj=self.proj,
                            fontsize=fontsize)
+
+    def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
+                  bisection_offset='auto', minimum_node_distance='auto',
+                  linewidth=0.8, **kwargs):
+        """
+        Add a geographic coordinte grid to the plot.
+        """
+        plot_grid(self.ax, self.xlim, self.ylim, self.proj_str,
+                  tick_spacing_degree, bisection_offset=bisection_offset,
+                  minimum_node_distance=minimum_node_distance,
+                  max_lat=max_lat, linewidth=linewidth, **kwargs)
