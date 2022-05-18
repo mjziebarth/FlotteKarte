@@ -257,6 +257,11 @@ xy_t ProjWrapper::project(const geo_t& lola) const
 	return {to.xy.x, to.xy.y};
 }
 
+xy_t ProjWrapper::project(const geo_degrees_t& lola) const
+{
+	return project(lola.to_radians());
+}
+
 geo_t ProjWrapper::inverse(const xy_t& xy) const
 {
 	if (proj_errno(workhorse))
