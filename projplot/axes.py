@@ -135,11 +135,11 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
                 ha='center', va='bottom', fontsize=fontsize)
     for y,tick in zip(tick_y[i1:i2] + tick_off[i1:i2,1], ticks_left):
         ax.text(xlim[0]-margin_ticks, y,
-                tick_text(tick[int(tick_right == 'lat')], which=tick_right),
+                tick_text(tick[int(tick_left == 'lat')], which=tick_left),
                 ha='right', va='center', fontsize=fontsize)
     for y,tick in zip(tick_y[i2:] + tick_off[i2:,1], ticks_right):
         ax.text(xlim[1]+margin_ticks, y,
-                tick_text(tick[int(tick_left == 'lat')], which=tick_right),
+                tick_text(tick[int(tick_right == 'lat')], which=tick_right),
                 ha='left', va='center', fontsize=fontsize)
 
     ax.set_axis_off()
