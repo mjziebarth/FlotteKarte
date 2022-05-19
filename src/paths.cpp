@@ -8,12 +8,15 @@
 #include <optional>
 #include <stack>
 #include <iostream>
+#include <cmath>
+#include <set>
 
 
 using projplot::xy_t;
 using projplot::geo_t;
 using projplot::geo_degrees_t;
 using projplot::path_xy_t;
+using projplot::deg2rad;
 using projplot::ProjWrapper;
 using projplot::crop_and_refine;
 
@@ -71,7 +74,7 @@ static xy_t boundary_intersection(const xy_t& out, const xy_t& in, double xmin,
 		return {xyint, ymax};
 
 	} else if (out.y < ymin){
-		const double xyint = interpolate_x(xmin - out.y, in.y - ymin);
+		const double xyint = interpolate_x(ymin - out.y, in.y - ymin);
 		if (out.x < xmin){
 			/* Intersection with the x axis: */
 			double yxint = interpolate_y(xmin - out.x, in.x - xmin);
@@ -274,7 +277,7 @@ projplot::crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
 					 *
 					 * Compute the intersection with the map boundary:
 					 */
-					xy_t sub_path_end(boundary_intersection(*(it-1), *it,
+					xy_t sub_path_end(boundary_intersection(*it, *(it-1),
 					                             xmin, xmax, ymin, ymax));
 
 					/* Assemble the path: */
