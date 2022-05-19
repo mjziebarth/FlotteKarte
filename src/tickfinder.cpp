@@ -251,7 +251,15 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 	std::vector<geo_degrees_t> res;
 	res.reserve(int_levels.size());
 	for (auto il : int_levels){
-		geo_t lola(invert(gen_xy(il.x)));
+		xy_t xy(gen_xy(il.x));
+		geo_t lola(invert(xy));
+
+		/* Sanity check: Make sure that a full projection-inversion loop
+		 * can be performed. */
+		double xy_norm = std::sqrt(xy.x*xy.x + xy.y * xy.y);
+		if (proj.project(lola).distance(xy) > 1e-5*xy_norm)
+			continue;
+
 		if (tick == TICK_LON)
 			res.push_back({il.level * tick_spacing, rad2deg(lola.phi)});
 		else
