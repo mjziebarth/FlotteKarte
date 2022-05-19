@@ -399,7 +399,7 @@ static void cut_discontinuities(std::vector<path_xy_t>& paths,
 	};
 
 	for (path_xy_t& path : paths){
-		if (path.empty())
+		if (path.size() < 2)
 			continue;
 		/* Obtain all the geographic coordinates: */
 		std::vector<geo_t> geo_path(path.size());
@@ -424,6 +424,16 @@ static void cut_discontinuities(std::vector<path_xy_t>& paths,
 			path.resize(disco);
 		}
 	}
+
+	/* Clear all empty paths: */
+	auto to = paths.begin();
+	for (auto from = paths.cbegin(); from != paths.cend(); ++from){
+		if (from->size() > 1){
+			*to = *from;
+			++to;
+		}
+	}
+	paths.resize(to - paths.begin());
 
 	/* Now iterate all the split off discontinuities: */
 	while (!split_off.empty()){
