@@ -118,6 +118,26 @@ static double distance_to_line(const xy_t& x0, const xy_t& x1, const xy_t& x2)
            / x1.distance(x2);
 }
 
+static geo_t midpoint(const geo_t& p0, const geo_t& p1)
+{
+	/* Convert to Euclidean coordinates, compute the midpoint,
+	 * convert back to spherical coordinates.
+	 * This would work reasonably well if the points are not too
+	 * far away from each other (i.e. leading to cancelling terms)
+	 */
+	double mx = 0.5 * (  std::cos(p0.lambda)*std::cos(p0.phi)
+	                   + std::cos(p1.lambda)*std::cos(p1.phi));
+	double my = 0.5 * (  std::sin(p0.lambda)*std::cos(p0.phi)
+	                   + std::sin(p1.lambda)*std::cos(p1.phi));
+	double mz = 0.5 * (std::sin(p0.phi) + std::sin(p1.phi));
+	double nrm = std::sqrt(mx*mx + my*my + mz*mz);
+	mx /= nrm;
+	my /= nrm;
+	mz /= nrm;
+	mz = std::min(std::max(mz,-1.0), 1.0);
+	return {std::atan2(my,mx), std::asin(mz)};
+}
+
 
 static std::vector<xy_t>
 refine_path(const std::vector<std::pair<geo_t,xy_t>>& path,
@@ -147,9 +167,7 @@ refine_path(const std::vector<std::pair<geo_t,xy_t>>& path,
 		}
 
 		/* Compute geographic center: */
-		double lam_c = 0.5 * (last.first.lambda + next.first.lambda);
-		double phi_c = 0.5 * (last.first.phi + next.first.phi);
-		geo_t central({lam_c, phi_c});
+		geo_t central(midpoint(last.first, next.first));
 		xy_t xy_c(proj.project(central));
 
 		/* We bisect only if the distance from the last to the central node
