@@ -201,10 +201,265 @@ refine_path(const std::vector<std::pair<geo_t,xy_t>>& path,
 }
 
 
+static double normed_vec_dot_product(const xy_t& ref, const xy_t& x0,
+                                     const xy_t& x1)
+{
+	double vx0 = x0.x - ref.x;
+	double vy0 = x0.y - ref.y;
+	double vx1 = x1.x - ref.x;
+	double vy1 = x1.y - ref.y;
+	/* Product of the norms of the two vectors: */
+	double nrm = std::sqrt((vx0*vx0 + vy0*vy0) * (vx1*vx1 + vy1*vy1));
+	return (vx0 * vx1 + vy0*vy1) / nrm;
+}
+
+
+static void cut_at_angles(std::vector<path_xy_t>& paths,
+                          const ProjWrapper& proj, double cut_at_angle_degrees,
+                          bool cyclic)
+{
+	/* Testing criticality: */
+	const double cos_cut_at_angle = std::cos(deg2rad(cut_at_angle_degrees));
+	const bool try_cycle = cyclic && paths.size() == 1 && paths[0].size() > 2;
+
+	auto is_critical = [&](const path_xy_t& path, size_t i) -> bool {
+		size_t last, next;
+		if (i == 0 || i == path.size()-1){
+			if (try_cycle){
+				if (i == 0){
+					last = path.size()-1;
+					next = 1;
+				} else {
+					last = path.size()-2;
+					next = 0;
+				}
+			}
+			return false;
+		} else {
+			last = i-1;
+			next = i+1;
+		}
+		double dot_p = normed_vec_dot_product(path[i], path[last],
+		                                      path[next]);
+		return -dot_p < cos_cut_at_angle;
+	};
+
+	std::set<size_t> critical_nodes;
+	std::vector<path_xy_t> append;
+	for (path_xy_t& path : paths){
+		const size_t M = path.size();
+		if (M < 3){
+			/* Cannot compute critiality for short paths: */
+			continue;
+		}
+		critical_nodes.clear();
+
+		/* Compute the mask that indicates whether the angle at each node
+		 * is critial: */
+		for (size_t i=1; i<M-1; ++i){
+			if (is_critical(path, i))
+				critical_nodes.insert(i);
+		}
+
+		/* Early continue if nothing is critical: */
+		if (critical_nodes.size() == 0)
+			continue;
+
+		bool cycle = try_cycle;
+		if (try_cycle){
+			/* */
+			bool end_critical = false;
+			/* Now make sure that 0 != M-1 so as to be able to assess
+			 * criticality: */
+			if (path[0] == path.back()){
+				path.pop_back();
+			}
+			if (is_critical(path, 0)){
+				critical_nodes.insert(0);
+				end_critical = true;
+			}
+			if (is_critical(path, path.size()-1)){
+				critical_nodes.insert(path.size()-1);
+				end_critical = true;
+			}
+			/* Cycle around only if the end is not critical: */
+			cycle = !end_critical;
+
+		} else {
+			/* Handle the edge nodes. If possible, they take the blame if
+			 * node 1 or M-1 are critical: */
+			if (critical_nodes.contains(1) && !critical_nodes.contains(2)){
+				/* Node 0 is the culprit: */
+				critical_nodes.insert(0);
+				critical_nodes.erase(1);
+			}
+			if (critical_nodes.contains(M-2) && !critical_nodes.contains(M-3)){
+				/* Node M-1 is the culprit: */
+				critical_nodes.insert(M-1);
+				critical_nodes.erase(M-2);
+			}
+		}
+
+		/* Check if there are enoug nodes remainig:: */
+		const size_t remaining = path.size() - critical_nodes.size();
+		if (remaining == 0){
+			path.clear();
+			continue;
+		}
+
+		/* Now create the reduced vector: */
+		if (cycle){
+			size_t begin = *critical_nodes.begin() + 1;
+			for (auto it=++critical_nodes.cbegin(); it != critical_nodes.cend();
+			     ++it)
+			{
+				append.emplace_back(path.cbegin()+begin, path.cbegin() + *it);
+				begin = *it + 1;
+			}
+			if (begin < path.size() - 1)
+				append.emplace_back(path.cbegin()+begin, path.cend());
+			else
+				append.emplace_back();
+
+			/* Decide whether to insert the  */
+			append.back().insert(append.back().cend(), path.cbegin(),
+			                     path.cbegin() + *critical_nodes.begin());
+			path.clear();
+		} else {
+			size_t begin = 0;
+			for (size_t i : critical_nodes){
+				append.emplace_back(path.cbegin()+begin, path.cbegin()+i);
+				begin = i+1;
+			}
+			append.emplace_back(path.cbegin()+begin, path.cend());
+			path.clear();
+		}
+	}
+
+	/* Add the split paths: */
+	paths.insert(paths.cend(), append.cbegin(), append.cend());
+
+	/* Clear all empty paths: */
+	auto to = paths.begin();
+	for (auto from = paths.cbegin(); from != paths.cend(); ++from){
+		if (from->size() > 1){
+			*to = *from;
+			++to;
+		}
+	}
+	paths.resize(to - paths.begin());
+
+
+
+	for (size_t j=0; j<paths.size(); ++j){
+		const path_xy_t& p = paths[j];
+		if (p.size() < 3)
+			continue;
+		for (size_t i=0; i<p.size(); ++i){
+			if (is_critical(p, i)){
+				std::cerr << "found a critical path after they should be "
+				             "cleared!\n    i=" << i << " / "
+				             << p.size() << "\n"
+				             << "   try_cycle = " << try_cycle << "\n"
+				             << "   j=" << j << " / " << paths.size() << "\n";
+			}
+		}
+	}
+}
+
+
+/* This function aims to identify discontinuities.
+ */
+static void cut_discontinuities(std::vector<path_xy_t>& paths,
+                                const ProjWrapper& proj)
+{
+	typedef std::vector<geo_t> geopath_t;
+	std::stack<std::pair<path_xy_t,geopath_t>> split_off;
+
+	/*  */
+	auto find_discontinuity = [&](const path_xy_t& path,
+	                              const geopath_t& gpath) -> size_t
+	{
+		for (size_t i=0; i<path.size()-1; ++i){
+			/* Compute the center of the line segment (i, i+1) */
+			geo_t center(midpoint(gpath[i],gpath[i+1]));
+			xy_t c_xy(proj.project(center));
+
+			/* Distances of both line segments: */
+			double d0 = path[i].distance(c_xy);
+			double d1 = path[i+1].distance(c_xy);
+
+			/* Test for asymmetry: */
+			if (d0 > 5 * d1 || d1 > 5 * d0){
+				/* Split: */
+				return i+1;
+			}
+		}
+		return path.size();
+	};
+
+	for (path_xy_t& path : paths){
+		if (path.empty())
+			continue;
+		/* Obtain all the geographic coordinates: */
+		std::vector<geo_t> geo_path(path.size());
+		for (size_t i=0; i<path.size(); ++i){
+			geo_path[i] = proj.inverse(path[i]);
+		}
+
+		/* Now iterate the lines, compute the centers in geographic coordinates,
+		 * and see whether there is a crass asymmetry in the lengths of the
+		 * two splits: */
+		size_t disco = find_discontinuity(path, geo_path);
+		if (disco != path.size()){
+			/* Found a discontinuity. Remove it and add the second half to the
+			 * stack: */
+			std::cout << "found discontinuity at index " << disco << " / "
+			          << path.size() << "\n" << std::flush;
+			if (path.size() - disco > 1){
+				path_xy_t tmp0(path.begin()+disco, path.end());
+				geopath_t tmp1(geo_path.begin()+disco, geo_path.end());
+				split_off.emplace(tmp0, tmp1);
+			}
+			path.resize(disco);
+		}
+	}
+
+	/* Now iterate all the split off discontinuities: */
+	while (!split_off.empty()){
+		const path_xy_t& path = split_off.top().first;
+		const geopath_t& gpath = split_off.top().second;
+		size_t disco = find_discontinuity(path, gpath);
+		if (disco == path.size()){
+			paths.push_back(path);
+			split_off.pop();
+		} else {
+			/* Found a discontinuity. Remove it and add the second half to the
+			 * stack: */
+			if (disco > 1){
+				paths.emplace_back(path.cbegin(), path.cbegin()+disco);
+			}
+			if (path.size() - disco > 1){
+				path_xy_t tmp0(path.begin()+disco, path.end());
+				geopath_t tmp1(gpath.begin()+disco, gpath.end());
+				split_off.pop();
+				split_off.emplace(tmp0, tmp1);
+			} else {
+				split_off.pop();
+			}
+		}
+	}
+}
+
+
+
+
+
 std::vector<path_xy_t>
 projplot::crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
                           double xmin, double xmax, double ymin, double ymax,
-                          double bisection_offset, double minimum_node_distance)
+                          double bisection_offset, double minimum_node_distance,
+                          double cut_at_angle_degrees, bool cyclic)
 {
 	/* Helper methods: */
 	auto xy_inside = [&](const xy_t& xy) -> bool {
@@ -325,6 +580,12 @@ projplot::crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
 			                       path_refined.cend());
 		}
 	}
+
+	/* Now handle the cutting criterion: */
+	cut_at_angles(xy_paths, proj, cut_at_angle_degrees, cyclic);
+
+	/* Finally, identify and cut discontinuities: */
+	cut_discontinuities(xy_paths, proj);
 
 	return xy_paths;
 }

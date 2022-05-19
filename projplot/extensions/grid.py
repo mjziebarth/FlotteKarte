@@ -26,8 +26,8 @@ from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
 
 def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
               tick_spacing_degree: int, bisection_offset: float,
-              minimum_node_distance: float,
-              max_lat: float) -> tuple[np.ndarray,np.ndarray]:
+              minimum_node_distance: float, max_lat: float,
+              cut_at_angle_degrees: float) -> tuple[np.ndarray,np.ndarray]:
     """
     Computes a Matplotlib path comprising the lines of a geograpnic coordinate
     grid.
@@ -58,6 +58,10 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
     if max_lat <= 0 or max_lat > 90.0:
         raise RuntimeError("`max_lat` has to be positive and may not be larger "
                            "than 90.")
+    cut_at_angle_degrees = float(cut_at_angle_degrees)
+    if cut_at_angle_degrees < 0 or cut_at_angle_degrees > 180.0:
+        raise RuntimeError("`cut_at_angle_degrees` has to be between 0 and 180 "
+                           "degrees.")
 
     # Determine the projection
     proj_split = [p.split("=") for p in proj_str.split()]
@@ -78,8 +82,9 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
                                    c_double(ymax), c_int(tick_spacing_degree),
                                    c_double(bisection_offset),
                                    c_double(minimum_node_distance),
-                                   c_double(max_lat), byref(struct_ptr),
-                                   byref(Npath));
+                                   c_double(max_lat),
+                                   c_double(cut_at_angle_degrees),
+                                   byref(struct_ptr), byref(Npath));
 
     if res != 0:
         # Clean up:

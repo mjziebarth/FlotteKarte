@@ -58,6 +58,7 @@ class ProjPlot:
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
                   bisection_offset='auto', minimum_node_distance='auto',
+                  cut_angle_at_degrees: float = 90.0,
                   linewidth=0.8, **kwargs):
         """
         Add a geographic coordinte grid to the plot.
@@ -65,4 +66,5 @@ class ProjPlot:
         plot_grid(self.ax, self.xlim, self.ylim, self.proj_str,
                   tick_spacing_degree, bisection_offset=bisection_offset,
                   minimum_node_distance=minimum_node_distance,
-                  max_lat=max_lat, linewidth=linewidth, **kwargs)
+                  max_lat=max_lat, cut_angle_at_degrees=cut_angle_at_degrees,
+                  linewidth=linewidth, **kwargs)

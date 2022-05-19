@@ -57,7 +57,8 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 int compute_grid_lines(const char* proj_str, double xmin, double xmax,
                        double ymin, double ymax, int tick_spacing_degree,
                        double bisection_offset, double minimum_node_distance,
-                       double max_lat, void** struct_ptr, size_t* Npath);
+                       double max_lat, double cut_at_angle_degrees,
+                       void** struct_ptr, size_t* Npath);
 
 /*
  * Second part of a three-part function.

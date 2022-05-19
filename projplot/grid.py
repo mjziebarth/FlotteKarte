@@ -10,7 +10,8 @@ from matplotlib.patches import PathPatch
 def plot_grid(ax, xlim: tuple[float,float], ylim: tuple[float,float],
               proj_str: str, tick_spacing_degree: int,
               bisection_offset='auto', minimum_node_distance='auto',
-              max_lat=90., linewidth=0.8, **kwargs):
+              max_lat=90., cut_angle_at_degrees: float = 90.0,
+              linewidth=0.8, **kwargs):
     """
     Plots a geographic coordinate grid.
     """
@@ -23,7 +24,7 @@ def plot_grid(ax, xlim: tuple[float,float], ylim: tuple[float,float],
     # Use backend to generate the path:
     vertices, codes = grid_path(proj_str, *xlim, *ylim, tick_spacing_degree,
                                 bisection_offset, minimum_node_distance,
-                                max_lat)
+                                max_lat, cut_angle_at_degrees)
 
     # Matplotlib path and PathPatch:
     path = Path(vertices, codes=codes)

@@ -40,7 +40,7 @@ std::vector<path_xy_t>
 projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
                     double ymin, double ymax, int tick_spacing_degree,
                     double bisection_offset, double minimum_node_distance,
-                    double max_lat)
+                    double max_lat, double cut_at_angle_degrees)
 {
 	if (tick_spacing_degree == 0){
 		throw std::runtime_error("Cannot have zero ticks spacing.");
@@ -94,7 +94,8 @@ projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
 		/* Crop and refine the path: */
 		std::vector<path_xy_t>
 		   refined(crop_and_refine(path, proj, xmin, xmax, ymin, ymax,
-		                           bisection_offset, minimum_node_distance));
+		                           bisection_offset, minimum_node_distance,
+		                           cut_at_angle_degrees, false));
 
 		/* Add the new segments: */
 		paths.insert(paths.cend(), refined.cbegin(), refined.cend());
@@ -117,7 +118,8 @@ projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
 		/* Crop and refine the path: */
 		std::vector<path_xy_t>
 		   refined(crop_and_refine(path, proj, xmin, xmax, ymin, ymax,
-		                           bisection_offset, minimum_node_distance));
+		                           bisection_offset, minimum_node_distance,
+		                           cut_at_angle_degrees, true));
 
 		/* Add the new segments: */
 		paths.insert(paths.cend(), refined.cbegin(), refined.cend());
