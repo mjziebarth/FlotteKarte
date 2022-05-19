@@ -81,13 +81,13 @@ projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
 	const long nlat0 = std::ceil(max_lat*min_ticks_per_degree);
 	const double dlat0 = max_lat / nlat0;
 	path_geo_t path;
-	for (long i = -nlon0+1; i<nlon0; ++i){
+	for (long i = -nlon0; i<nlon0; ++i){
 		/* Construct the vector of geographic coordinates
 		 * from -max_lat to max_lat:
 		 */
 		path.clear();
 		const double loni = i*dlon0;
-		for (long j=-nlat0+1; j<nlat0; ++j){
+		for (long j=-nlat0; j<=nlat0; ++j){
 			path.emplace_back(loni, j*dlat0);
 		}
 
@@ -114,6 +114,8 @@ projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
 		for (long j=-nlon1; j<nlon1; ++j){
 			path.emplace_back(j*dlon1, lati);
 		}
+		/* Close the path: */
+		path.emplace_back(-nlon1*dlon1, lati);
 
 		/* Crop and refine the path: */
 		std::vector<path_xy_t>
