@@ -9,4 +9,5 @@ sources = ['src/projwrapper.cpp', 'src/pyapi.cpp', 'src/invert.cpp',
 library('inverse',
         sources : sources,
         include_directories : include,
-        dependencies : dependencies)
+        dependencies : dependencies,
+        override_options : ['cpp_std=c++20'])
