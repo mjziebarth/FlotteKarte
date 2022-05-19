@@ -18,6 +18,8 @@ struct xy_t {
 	double distance(const xy_t& other) const;
 
 	double distance_squared(const xy_t& other) const;
+
+	bool operator==(const xy_t& other) const;
 };
 
 struct geo_t {

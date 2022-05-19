@@ -22,6 +22,12 @@ double xy_t::distance_squared(const xy_t& other) const
 }
 
 
+bool xy_t::operator==(const xy_t& other) const
+{
+	return (x == other.x) && (y == other.y);
+}
+
+
 geo_degrees_t::geo_degrees_t(double lon, double lat) : lon(lon), lat(lat)
 {
 }
