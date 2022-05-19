@@ -104,7 +104,6 @@ projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
 	/* Construct the lines of constant latitude: */
 	const long nlon1 = 180 * min_ticks_per_degree;
 	const double dlon1 = 180.0 / nlon1;
-	path.clear();
 	for (long i = -nlat1+1; i<nlat1; ++i){
 		/* Construct the vector of geographic coordinates
 		 * from -max_lat to max_lat:
