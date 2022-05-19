@@ -157,11 +157,12 @@ refine_path(const std::vector<std::pair<geo_t,xy_t>>& path,
 	const double min_node_distance2 = minimum_node_distance
 	                                  * minimum_node_distance;
 	while (!remaining.empty()){
-		/* If the next node is closer than the minimum node distance, skip it:
+		/* If the next node is closer than the minimum node distance, skip it
+		 * (but only if its not the last node):
 		 */
 		const std::pair<geo_t,xy_t>& next = remaining.top();
 		double distance2_non = last.second.distance_squared(next.second);
-		if (distance2_non < min_node_distance2){
+		if (distance2_non < min_node_distance2 && remaining.size() > 1){
 			remaining.pop();
 			continue;
 		}
