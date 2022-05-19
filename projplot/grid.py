@@ -19,7 +19,7 @@ def plot_grid(ax, xlim: tuple[float,float], ylim: tuple[float,float],
     if bisection_offset == 'auto':
         bisection_offset = 1e-2 * diagonal
     if minimum_node_distance == 'auto':
-        minimum_node_distance = 1e-2 * diagonal
+        minimum_node_distance = 1e-3 * diagonal
 
     # Use backend to generate the path:
     vertices, codes = grid_path(proj_str, *xlim, *ylim, tick_spacing_degree,
