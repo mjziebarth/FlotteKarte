@@ -85,6 +85,10 @@ projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
                         axis_t ax, tick_t tick, double xmin, double xmax,
                         double ymin, double ymax, double tick_spacing)
 {
+	/* No ticks: */
+	if (tick == TICK_NONE)
+		return std::vector<geo_degrees_t>();
+
 	auto gen_xy = [&](double z) -> xy_t {
 		xy_t xy;
 		if (ax == AX_BOT){

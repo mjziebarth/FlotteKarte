@@ -3,12 +3,14 @@
 import numpy as np
 from .cdll import _cdll
 from ctypes import c_double, POINTER, c_char_p, c_uint, c_ubyte
+from typing import Optional
 
 def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
                        ymax: float, tick_spacing: float,
-                       bot: str = 'lon', top: str = 'lon', left: str = 'lat',
-                       right: str = 'lat') -> tuple[np.ndarray,np.ndarray,
-                                                    np.ndarray,np.ndarray]:
+                       bot: Optional[str] = 'lon', top: Optional[str] = 'lon',
+                       left: Optional[str] = 'lat',
+                       right: Optional[str] = 'lat') \
+   -> tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """
 
     """
@@ -19,10 +21,10 @@ def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
     ymax = float(ymax)
     tick_spacing = float(tick_spacing)
     proj_str = str(proj_str)
-    t2i = {'lon' : 0, 'lat': 1}
+    t2i = {'lon' : 0, 'lat': 1, None: 2}
     if any(t not in t2i for t in (bot,top,left,right)):
         raise RuntimeError("Ticks `bot`, `top`, `left` and `right` must "
-                           "be one of 'lon' or 'lat'.")
+                           "be one of 'lon', 'lat', or None.")
     bot = t2i[bot]
     top = t2i[top]
     left = t2i[left]

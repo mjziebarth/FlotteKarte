@@ -44,7 +44,7 @@ enum axis_t {
 };
 
 enum tick_t {
-	TICK_LON=0, TICK_LAT=1
+	TICK_LON=0, TICK_LAT=1, TICK_NONE=2
 };
 
 
