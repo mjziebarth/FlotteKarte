@@ -1,5 +1,5 @@
 # Routines for interpolating irregulary structured data onto regular grids.
-# This file is part of the projplot python module.
+# This file is part of the flottekarte python module.
 #
 # Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
 #

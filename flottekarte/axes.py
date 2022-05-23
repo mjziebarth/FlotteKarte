@@ -121,8 +121,6 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
 
     tl = margin_ticks
     tick_off *= tl / np.linalg.norm(tick_off, axis=1)[:,np.newaxis]
-    ticks = [[[x,y],[x+g[0],y+g[1]]] for x,y,g in zip(tick_x, tick_y, tick_off)]
-    ax.add_collection(LineCollection(ticks, color='k', linewidth=linewidth))
 
     # Plot the ticklabels:
     for x,tick in zip(tick_x[:i0] + tick_off[:i0,0], ticks_bot):
@@ -142,4 +140,9 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
                 tick_text(tick[int(tick_right == 'lat')], which=tick_right),
                 ha='left', va='center', fontsize=fontsize)
 
+    # Select only a set of tick labels that does not overlap:
+
+
+    ticks = [[[x,y],[x+g[0],y+g[1]]] for x,y,g in zip(tick_x, tick_y, tick_off)]
+    ax.add_collection(LineCollection(ticks, color='k', linewidth=linewidth))
     ax.set_axis_off()

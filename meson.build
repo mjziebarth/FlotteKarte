@@ -1,4 +1,4 @@
-project('projplot', 'cpp')
+project('flottekarte', 'cpp')
 add_project_arguments('-O3', '-march=native',  language : 'cpp')
 include = [include_directories('/usr/include'), include_directories('include')]
 dependencies = [dependency('proj'),dependency('openmp')]
