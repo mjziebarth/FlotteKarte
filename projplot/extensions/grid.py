@@ -6,24 +6,6 @@ from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
                    byref, c_ubyte
 
 
-# int compute_grid_lines(const char* proj_str, double xmin, double xmax,
-#                        double ymin, double ymax, int tick_spacing_degree,
-#                        double bisection_offset, double minimum_node_distance,
-#                        double max_lat, void*& struct_ptr, unsigned long& Npath);
-
-# /*
-#  * Second part of a three-part function.
-#  */
-# int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes);
-
-# /*
-#  * Final part of a three-part function. Call exactly one time after
-#  * compute_grid_lines has successfully completed.
-#  */
-# int clean_grid_lines_struct(void* struct_ptr);
-
-
-
 def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
               tick_spacing_degree: int, bisection_offset: float,
               minimum_node_distance: float, max_lat: float,
