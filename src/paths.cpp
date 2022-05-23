@@ -12,13 +12,13 @@
 #include <set>
 
 
-using projplot::xy_t;
-using projplot::geo_t;
-using projplot::geo_degrees_t;
-using projplot::path_xy_t;
-using projplot::deg2rad;
-using projplot::ProjWrapper;
-using projplot::crop_and_refine;
+using flottekarte::xy_t;
+using flottekarte::geo_t;
+using flottekarte::geo_degrees_t;
+using flottekarte::path_xy_t;
+using flottekarte::deg2rad;
+using flottekarte::ProjWrapper;
+using flottekarte::crop_and_refine;
 
 
 
@@ -466,7 +466,7 @@ static void cut_discontinuities(std::vector<path_xy_t>& paths,
 
 
 std::vector<path_xy_t>
-projplot::crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
+flottekarte::crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
                           double xmin, double xmax, double ymin, double ymax,
                           double bisection_offset, double minimum_node_distance,
                           double cut_at_angle_degrees, bool cyclic)

@@ -4,10 +4,10 @@
 
 #include <vector>
 
-#ifndef PROJPLOT_TYPES_HPP
-#define PROJPLOT_TYPES_HPP
+#ifndef FLOTTEKARTE_TYPES_HPP
+#define FLOTTEKARTE_TYPES_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 constexpr double PI = 3.14159265358979323846;
 

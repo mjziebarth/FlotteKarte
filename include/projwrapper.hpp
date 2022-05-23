@@ -7,10 +7,10 @@
 #include <stdexcept>
 #include <types.hpp>
 
-#ifndef PROJPLOT_PROJWRAPPER_HPP
-#define PROJPLOT_PROJWRAPPER_HPP
+#ifndef FLOTTEKARTE_PROJWRAPPER_HPP
+#define FLOTTEKARTE_PROJWRAPPER_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 /* An exception class for PROJ errors: */
 class ProjError : public std::exception

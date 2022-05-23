@@ -4,10 +4,10 @@
 
 #include <../include/griddedinverter.hpp>
 
-using projplot::geo_t;
-using projplot::xy_t;
-using projplot::GriddedInverter;
-using projplot::ProjWrapper;
+using flottekarte::geo_t;
+using flottekarte::xy_t;
+using flottekarte::GriddedInverter;
+using flottekarte::ProjWrapper;
 
 GriddedInverter::GriddedInverter(const ProjWrapper& proj, size_t nlon,
                                  size_t nlat)

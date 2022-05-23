@@ -5,10 +5,10 @@
 #include <../include/types.hpp>
 #include <../include/projwrapper.hpp>
 
-#ifndef PROJPLOT_PATHS_HPP
-#define PROJPLOT_PATHS_HPP
+#ifndef FLOTTEKARTE_PATHS_HPP
+#define FLOTTEKARTE_PATHS_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 std::vector<path_xy_t>
 crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,

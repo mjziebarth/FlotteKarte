@@ -9,14 +9,14 @@
 #include <boost/math/tools/roots.hpp>
 using boost::math::tools::eps_tolerance;
 using boost::math::tools::toms748_solve;
-using projplot::compute_ticks;
-using projplot::gradient_descent_inverse_project;
-using projplot::axis_t;
-using projplot::tick_t;
-using projplot::geo_t;
-using projplot::geo_degrees_t;
-using projplot::ProjWrapper;
-using projplot::GriddedInverter;
+using flottekarte::compute_ticks;
+using flottekarte::gradient_descent_inverse_project;
+using flottekarte::axis_t;
+using flottekarte::tick_t;
+using flottekarte::geo_t;
+using flottekarte::geo_degrees_t;
+using flottekarte::ProjWrapper;
+using flottekarte::GriddedInverter;
 
 #include <iostream>
 
@@ -81,7 +81,7 @@ compute_integer_levels(std::function<double(double)> fun, double x0, double x1)
 
 
 std::vector<geo_degrees_t>
-projplot::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
+flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
                         axis_t ax, tick_t tick, double xmin, double xmax,
                         double ymin, double ymax, double tick_spacing)
 {

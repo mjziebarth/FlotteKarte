@@ -7,13 +7,13 @@
 #include <cmath>
 #include <iostream>
 
-using projplot::xy_t;
-using projplot::geo_degrees_t;
-using projplot::generate_grid_lines;
-using projplot::ProjWrapper;
-using projplot::crop_and_refine;
-using projplot::path_xy_t;
-using projplot::path_geo_t;
+using flottekarte::xy_t;
+using flottekarte::geo_degrees_t;
+using flottekarte::generate_grid_lines;
+using flottekarte::ProjWrapper;
+using flottekarte::crop_and_refine;
+using flottekarte::path_xy_t;
+using flottekarte::path_geo_t;
 
 
 static long lon_ticks(int tick_spacing_degree)
@@ -37,10 +37,11 @@ static long lat_ticks(int tick_spacing_degree)
 
 
 std::vector<path_xy_t>
-projplot::generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
-                    double ymin, double ymax, int tick_spacing_degree,
-                    double bisection_offset, double minimum_node_distance,
-                    double max_lat, double cut_at_angle_degrees)
+flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
+                    double xmax, double ymin, double ymax,
+                    int tick_spacing_degree, double bisection_offset,
+                    double minimum_node_distance, double max_lat,
+                    double cut_at_angle_degrees)
 {
 	if (tick_spacing_degree == 0){
 		throw std::runtime_error("Cannot have zero ticks spacing.");

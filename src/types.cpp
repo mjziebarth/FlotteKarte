@@ -2,10 +2,10 @@
 #include <../include/types.hpp>
 #include <cmath>
 
-using projplot::xy_t;
-using projplot::geo_t;
-using projplot::geo_degrees_t;
-using projplot::deg2rad;
+using flottekarte::xy_t;
+using flottekarte::geo_t;
+using flottekarte::geo_degrees_t;
+using flottekarte::deg2rad;
 
 
 
@@ -39,15 +39,15 @@ geo_t geo_degrees_t::to_radians() const
 }
 
 
-double projplot::deg2rad(double deg){
-	return projplot::PI / 180.0 * deg;
+double flottekarte::deg2rad(double deg){
+	return flottekarte::PI / 180.0 * deg;
 }
 
-double projplot::rad2deg(double rad){
-	return 180.0 / projplot::PI * rad;
+double flottekarte::rad2deg(double rad){
+	return 180.0 / flottekarte::PI * rad;
 }
 
-double projplot::modulo(double a, double b){
+double flottekarte::modulo(double a, double b){
 	/* True modulo operation (similar to Python's (a % b)).
 	 * Implemented here only for positive b (which is what we use).
 	 */

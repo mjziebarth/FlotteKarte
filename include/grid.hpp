@@ -3,13 +3,12 @@
  */
 
 #include <vector>
-//#include <../include/types.hpp>
 #include <../include/projwrapper.hpp>
 
-#ifndef PROJPLOT_GRID_HPP
-#define PROJPLOT_GRID_HPP
+#ifndef FLOTTEKARTE_GRID_HPP
+#define FLOTTEKARTE_GRID_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 
 std::vector<std::vector<xy_t>>

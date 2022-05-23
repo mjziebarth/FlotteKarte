@@ -4,10 +4,10 @@
 
 #include <../include/projwrapper.hpp>
 
-#ifndef PROJPLOT_GRADIENT_HPP
-#define PROJPLOT_GRADIENT_HPP
+#ifndef FLOTTEKARTE_GRADIENT_HPP
+#define FLOTTEKARTE_GRADIENT_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 enum stencil {
 	FORWARD_5POINT

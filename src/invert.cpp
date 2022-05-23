@@ -7,14 +7,14 @@
 using boost::math::tools::eps_tolerance;
 using boost::math::tools::bracket_and_solve_root;
 
-using projplot::geo_t;
-using projplot::ProjWrapper;
-using projplot::xy_t;
+using flottekarte::geo_t;
+using flottekarte::ProjWrapper;
+using flottekarte::xy_t;
 
-projplot::geo_t
-projplot::gradient_descent_inverse_project(const ProjWrapper& projection,
-                                           const xy_t& xy, double lambda0,
-                                           double phi0)
+flottekarte::geo_t
+flottekarte::gradient_descent_inverse_project(const ProjWrapper& projection,
+                                              const xy_t& xy, double lambda0,
+                                              double phi0)
 {
 	/* Use root finding to compute inverse. */
 

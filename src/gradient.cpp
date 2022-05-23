@@ -5,11 +5,11 @@
 #include <../include/gradient.hpp>
 #include <cmath>
 
-using projplot::xy_t;
-using projplot::geo_t;
-using projplot::Gradient;
-using projplot::ProjWrapper;
-using projplot::FORWARD_5POINT;
+using flottekarte::xy_t;
+using flottekarte::geo_t;
+using flottekarte::Gradient;
+using flottekarte::ProjWrapper;
+using flottekarte::FORWARD_5POINT;
 
 #include <iostream>
 

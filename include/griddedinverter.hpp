@@ -10,10 +10,10 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
-#ifndef PROJPLOT_GRIDDEDINVERTER_HPP
-#define PROJPLOT_GRIDDEDINVERTER_HPP
+#ifndef FLOTTEKARTE_GRIDDEDINVERTER_HPP
+#define FLOTTEKARTE_GRIDDEDINVERTER_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 typedef boost::geometry::cs::cartesian rtcartesian;
 typedef boost::geometry::model::point<float, 2, rtcartesian> rtpoint;

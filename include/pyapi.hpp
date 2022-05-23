@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <cstddef>
 
-#ifndef PROJPLOT_PYAPI_HPP
-#define PROJPLOT_PYAPI_HPP
+#ifndef FLOTTEKARTE_PYAPI_HPP
+#define FLOTTEKARTE_PYAPI_HPP
 
 extern "C" {
 

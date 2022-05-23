@@ -11,22 +11,22 @@
 #include <../include/grid.hpp>
 #include <iostream>
 
-using projplot::xy_t;
-using projplot::geo_t;
-using projplot::axis_t;
-using projplot::tick_t;
-using projplot::rad2deg;
-using projplot::deg2rad;
-using projplot::path_xy_t;
-using projplot::ProjError;
-using projplot::ProjWrapper;
-using projplot::geo_degrees_t;
-using projplot::GriddedInverter;
-using projplot::generate_grid_lines;
-using projplot::gradient_descent_inverse_project;
-using projplot::compute_ticks;
-using projplot::Gradient;
-using projplot::FORWARD_5POINT;
+using flottekarte::xy_t;
+using flottekarte::geo_t;
+using flottekarte::axis_t;
+using flottekarte::tick_t;
+using flottekarte::rad2deg;
+using flottekarte::deg2rad;
+using flottekarte::path_xy_t;
+using flottekarte::ProjError;
+using flottekarte::ProjWrapper;
+using flottekarte::geo_degrees_t;
+using flottekarte::GriddedInverter;
+using flottekarte::generate_grid_lines;
+using flottekarte::gradient_descent_inverse_project;
+using flottekarte::compute_ticks;
+using flottekarte::Gradient;
+using flottekarte::FORWARD_5POINT;
 
 /*void project_data(const char* proj_str, unsigned long Npoints,
                   const double* lon, const double* lat,
@@ -173,10 +173,10 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 		#endif
 
 		/* Prepare everything for loop execution: */
-		std::array<axis_t,4> axes({projplot::AX_BOT,
-		                           projplot::AX_TOP,
-		                           projplot::AX_LEFT,
-		                           projplot::AX_RIGHT});
+		std::array<axis_t,4> axes({flottekarte::AX_BOT,
+		                           flottekarte::AX_TOP,
+		                           flottekarte::AX_LEFT,
+		                           flottekarte::AX_RIGHT});
 		std::array<tick_t,4> tick({static_cast<tick_t>(which_bot),
 		                           static_cast<tick_t>(which_top),
 		                           static_cast<tick_t>(which_left),

@@ -7,10 +7,10 @@
 #include <../include/griddedinverter.hpp>
 #include <vector>
 
-#ifndef PROJPLOT_TICKFINDER_HPP
-#define PROJPLOT_TICKFINDER_HPP
+#ifndef FLOTTEKARTE_TICKFINDER_HPP
+#define FLOTTEKARTE_TICKFINDER_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 std::vector<geo_degrees_t>
 compute_ticks(const ProjWrapper&, const GriddedInverter&, axis_t, tick_t,

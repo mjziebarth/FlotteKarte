@@ -5,10 +5,10 @@
 #include <../include/projwrapper.hpp>
 #include <../include/types.hpp>
 
-#ifndef PROJPLOT_INVERT_HPP
-#define PROJPLOT_INVERT_HPP
+#ifndef FLOTTEKARTE_INVERT_HPP
+#define FLOTTEKARTE_INVERT_HPP
 
-namespace projplot {
+namespace flottekarte {
 
 geo_t gradient_descent_inverse_project(const ProjWrapper& projection,
                                        const xy_t& xy, double lambda0,
