@@ -1,2 +1,2 @@
 
-from .projplot import ProjPlot
+from .map import Map

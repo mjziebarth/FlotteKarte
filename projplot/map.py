@@ -1,4 +1,4 @@
-# The ProjPlot class.
+# The Map class.
 
 import numpy as np
 from pyproj import Proj
@@ -9,7 +9,7 @@ from .axes import generate_axes_grid
 from .grid import plot_grid
 
 
-class ProjPlot:
+class Map:
     """
     A minimalistic map plotting tool using PROJ, pyproj,
     and Matplotlib.
@@ -31,7 +31,7 @@ class ProjPlot:
     def for_data(lon: np.ndarray, lat:np.ndarray, proj_str: str,
                  ax, margin_rel: float = 0.05):
         """
-        Generate a ProjPlot fitting some data in a given projection.
+        Generate a Map fitting some data in a given projection.
         """
         proj = Proj(proj_str)
         x,y = proj(lon, lat)
@@ -40,8 +40,8 @@ class ProjPlot:
         Dx = xlim[1] - xlim[0]
         Dy = ylim[1] - ylim[0]
         margin = margin_rel * max(Dx,Dy)
-        return ProjPlot(proj_str, ax, (xlim[0]-margin, xlim[1]+margin),
-                        (ylim[0]-margin, ylim[1]+margin), proj)
+        return Map(proj_str, ax, (xlim[0]-margin, xlim[1]+margin),
+                   (ylim[0]-margin, ylim[1]+margin), proj)
 
     def plot_axes(self, tick_spacing: float = 1.0,
                   tick_bot: str = 'lon', tick_top: str = 'lon',
