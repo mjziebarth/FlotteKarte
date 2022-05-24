@@ -20,14 +20,15 @@
 
 import numpy as np
 from math import ceil
+from typing import Tuple
 from scipy.spatial import KDTree
 from scipy.sparse import coo_array
 from scipy.interpolate import interp2d, LinearNDInterpolator
 
 
-def interpolate_to_raster(xyz: np.ndarray, xlim: tuple[float,float],
-                          ylim: tuple[float,float],
-                          resolution: float) -> tuple[np.ndarray, np.ndarray,
+def interpolate_to_raster(xyz: np.ndarray, xlim: Tuple[float,float],
+                          ylim: Tuple[float,float],
+                          resolution: float) -> Tuple[np.ndarray, np.ndarray,
                                                       np.ndarray]:
     """
     Interpolate unstructured data `xyz` to a freshly created raster,
@@ -54,9 +55,9 @@ def interpolate_to_raster(xyz: np.ndarray, xlim: tuple[float,float],
     return xg, yg, interp(xg[np.newaxis,:], yg[:,np.newaxis])
 
 
-def interpolate_to_raster_gauss(xyz: np.ndarray, xlim: tuple[float,float],
-                                ylim: tuple[float,float], resolution: float,
-                                rscale: float) -> tuple[np.ndarray, np.ndarray,
+def interpolate_to_raster_gauss(xyz: np.ndarray, xlim: Tuple[float,float],
+                                ylim: Tuple[float,float], resolution: float,
+                                rscale: float) -> Tuple[np.ndarray, np.ndarray,
                                                         np.ndarray]:
     """
     Interpolate unstructured data `xyz` to a freshly created raster,

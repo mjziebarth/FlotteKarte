@@ -7,7 +7,7 @@ description = "Plotting with PROJ and Matplotlib."
 authors = [
     {name = "Malte J. Ziebarth", email = "ziebarth@gfz-potsdam.de"}
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 
 [dependencies]
 matplotlib = "^3.5.1"
