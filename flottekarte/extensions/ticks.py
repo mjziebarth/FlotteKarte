@@ -3,14 +3,14 @@
 import numpy as np
 from .cdll import _cdll
 from ctypes import c_double, POINTER, c_char_p, c_uint, c_ubyte
-from typing import Optional
+from typing import Optional, Tuple
 
 def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
                        ymax: float, tick_spacing: float,
                        bot: Optional[str] = 'lon', top: Optional[str] = 'lon',
                        left: Optional[str] = 'lat',
                        right: Optional[str] = 'lat') \
-   -> tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+   -> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """
 
     """

@@ -2,10 +2,11 @@
 
 import numpy as np
 from .cdll import _cdll
+from typing import Tuple
 from ctypes import c_double, POINTER, c_char_p, c_ulong
 
 def gradients_east_north(proj_str: str, lon: np.ndarray, lat: np.ndarray,
-                         delta: float = 1e-5) -> tuple[np.ndarray,np.ndarray]:
+                         delta: float = 1e-5) -> Tuple[np.ndarray,np.ndarray]:
     """
 
     """
@@ -44,7 +45,7 @@ def gradients_east_north(proj_str: str, lon: np.ndarray, lat: np.ndarray,
 
 
 def scale_factors(proj_str: str, lon: np.ndarray, lat: np.ndarray,
-                  delta: float = 1e-5) -> tuple[np.ndarray,np.ndarray]:
+                  delta: float = 1e-5) -> Tuple[np.ndarray,np.ndarray]:
     """
 
     """

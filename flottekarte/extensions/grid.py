@@ -2,6 +2,7 @@
 
 import numpy as np
 from .cdll import _cdll
+from typing import Tuple
 from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
                    byref, c_ubyte
 
@@ -9,7 +10,7 @@ from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
 def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
               tick_spacing_degree: int, bisection_offset: float,
               minimum_node_distance: float, max_lat: float,
-              cut_at_angle_degrees: float) -> tuple[np.ndarray,np.ndarray]:
+              cut_at_angle_degrees: float) -> Tuple[np.ndarray,np.ndarray]:
     """
     Computes a Matplotlib path comprising the lines of a geograpnic coordinate
     grid.
