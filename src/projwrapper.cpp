@@ -270,7 +270,16 @@ geo_t ProjWrapper::inverse(const xy_t& xy) const
 	PJ_COORD to(proj_trans(workhorse, PJ_INV, from));
 	int err = proj_errno(workhorse);
 	if (err){
+		/* Throw error with indicating the PROJ error.
+		 * The thread-safe proj_context_errno_string routine was added
+		 * only in PROJ version 8.0.0. If the local version is older,
+		 * use the unsafe variant.
+		 */
+		#if PROJ_VERSION_MAJOR >= 8
 		throw ProjError(proj_context_errno_string(context, err));
+		#else
+		throw ProjError(proj_errno_string(err));
+		#endif
 	}
 	return {to.lp.lam, to.lp.phi};
 }
