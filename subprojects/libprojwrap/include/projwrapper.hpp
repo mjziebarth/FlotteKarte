@@ -5,12 +5,12 @@
 #include <proj.h>
 #include <memory>
 #include <stdexcept>
-#include <types.hpp>
+#include <projwrappertypes.hpp>
 
 #ifndef FLOTTEKARTE_PROJWRAPPER_HPP
 #define FLOTTEKARTE_PROJWRAPPER_HPP
 
-namespace flottekarte {
+namespace projwrapper {
 
 /* An exception class for PROJ errors: */
 class ProjError : public std::exception

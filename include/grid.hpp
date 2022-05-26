@@ -3,7 +3,7 @@
  */
 
 #include <vector>
-#include <../include/projwrapper.hpp>
+#include <../include/types.hpp>
 
 #ifndef FLOTTEKARTE_GRID_HPP
 #define FLOTTEKARTE_GRID_HPP

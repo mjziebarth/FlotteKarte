@@ -3,38 +3,24 @@
  */
 
 #include <vector>
+#include <projwrapper.hpp>
 
 #ifndef FLOTTEKARTE_TYPES_HPP
 #define FLOTTEKARTE_TYPES_HPP
 
 namespace flottekarte {
 
-constexpr double PI = 3.14159265358979323846;
+/* Use defines from projwrappertypes.hpp: */
+constexpr double PI = projwrapper::PI;
+typedef projwrapper::xy_t xy_t;
+typedef projwrapper::geo_t geo_t;
+typedef projwrapper::geo_degrees_t geo_degrees_t;
+using projwrapper::deg2rad;
+using projwrapper::rad2deg;
+using projwrapper::modulo;
+using projwrapper::ProjWrapper;
+using projwrapper::ProjError;
 
-struct xy_t {
-	double x;
-	double y;
-
-	double distance(const xy_t& other) const;
-
-	double distance_squared(const xy_t& other) const;
-
-	bool operator==(const xy_t& other) const;
-};
-
-struct geo_t {
-	double lambda;
-	double phi;
-};
-
-struct geo_degrees_t {
-	double lon;
-	double lat;
-
-	geo_degrees_t(double lon, double lat);
-
-	geo_t to_radians() const;
-};
 
 typedef std::vector<geo_degrees_t> path_geo_t;
 typedef std::vector<xy_t> path_xy_t;
@@ -46,12 +32,6 @@ enum axis_t {
 enum tick_t {
 	TICK_LON=0, TICK_LAT=1, TICK_NONE=2
 };
-
-
-double deg2rad(double deg);
-double rad2deg(double rad);
-
-double modulo(double a, double b);
 
 }
 

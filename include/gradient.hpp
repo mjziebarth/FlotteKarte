@@ -2,7 +2,7 @@
  * Gradient computation.
  */
 
-#include <../include/projwrapper.hpp>
+#include <../include/types.hpp>
 
 #ifndef FLOTTEKARTE_GRADIENT_HPP
 #define FLOTTEKARTE_GRADIENT_HPP

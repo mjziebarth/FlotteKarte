@@ -3,7 +3,6 @@
  */
 
 #include <../include/types.hpp>
-#include <../include/projwrapper.hpp>
 #include <../include/griddedinverter.hpp>
 #include <vector>
 

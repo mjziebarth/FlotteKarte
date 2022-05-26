@@ -3,7 +3,6 @@
  */
 
 #include <../include/types.hpp>
-#include <../include/projwrapper.hpp>
 
 #ifndef FLOTTEKARTE_PATHS_HPP
 #define FLOTTEKARTE_PATHS_HPP

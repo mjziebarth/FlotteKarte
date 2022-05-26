@@ -7,11 +7,11 @@
 #include <string>
 #include <cstring>
 
-using flottekarte::PJContainer;
-using flottekarte::ProjWrapper;
-using flottekarte::ProjError;
-using flottekarte::xy_t;
-using flottekarte::geo_t;
+using projwrapper::PJContainer;
+using projwrapper::ProjWrapper;
+using projwrapper::ProjError;
+using projwrapper::xy_t;
+using projwrapper::geo_t;
 
 /**************************
  *

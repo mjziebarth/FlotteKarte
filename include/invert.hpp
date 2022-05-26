@@ -2,7 +2,6 @@
  * Inversion routine.
  */
 
-#include <../include/projwrapper.hpp>
 #include <../include/types.hpp>
 
 #ifndef FLOTTEKARTE_INVERT_HPP

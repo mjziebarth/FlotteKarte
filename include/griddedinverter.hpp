@@ -4,7 +4,6 @@
  */
 
 #include <../include/types.hpp>
-#include <../include/projwrapper.hpp>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point.hpp>
