@@ -7,6 +7,7 @@ from pyproj import Proj
 # Import of functionality from other source files of this package:
 from .axes import generate_axes_grid
 from .grid import plot_grid
+from .data import GeoJSON
 
 
 class Map:
@@ -68,3 +69,13 @@ class Map:
                   minimum_node_distance=minimum_node_distance,
                   max_lat=max_lat, cut_angle_at_degrees=cut_angle_at_degrees,
                   linewidth=linewidth, **kwargs)
+
+    def add_data(self, dataset):
+        """
+        Add data loaded from the `data` submodule.
+        """
+        if isinstance(dataset,GeoJSON):
+            polygons = dataset.get_polygon_patches()
+            self.ax.add_collection(polygons)
+        else:
+            raise TypeError("`dataset` must be a GeoJSON object.")
