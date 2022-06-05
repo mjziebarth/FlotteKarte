@@ -85,7 +85,7 @@ class GeoJSON:
         self.multipolygons = multipolygons
 
 
-    def get_polygon_patches(self):
+    def get_polygon_patches(self, **kwargs):
         """
         Get matplotlib patches of the polygons and multipolygons.
         """
@@ -96,7 +96,7 @@ class GeoJSON:
             for poly in mpoly:
                 poly_patches.append(Polygon(poly[0]))
 
-        return PatchCollection(poly_patches)
+        return PatchCollection(poly_patches, **kwargs)
 
 
     def get_extent(self):

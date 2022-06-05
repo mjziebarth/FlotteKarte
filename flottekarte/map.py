@@ -70,12 +70,12 @@ class Map:
                   max_lat=max_lat, cut_angle_at_degrees=cut_angle_at_degrees,
                   linewidth=linewidth, **kwargs)
 
-    def add_data(self, dataset):
+    def add_data(self, dataset, **kwargs):
         """
         Add data loaded from the `data` submodule.
         """
         if isinstance(dataset,GeoJSON):
-            polygons = dataset.get_polygon_patches()
+            polygons = dataset.get_polygon_patches(**kwargs)
             self.ax.add_collection(polygons)
         else:
             raise TypeError("`dataset` must be a GeoJSON object.")
