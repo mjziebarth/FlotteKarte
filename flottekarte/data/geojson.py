@@ -5,6 +5,7 @@ import numpy as np
 from pyproj import Proj
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+from warnings import warn
 
 def assert_geojson_sanity(geojson_dict):
     """
@@ -22,7 +23,7 @@ class GeoJSON:
     """
     Loads data from a GeoJSON.
     """
-    def __init__(self, fname, proj):
+    def __init__(self, fname, proj, xlim=None, ylim=None):
         # Initialize the projection:
         if not isinstance(proj,Proj):
             proj = Proj(proj)
@@ -33,6 +34,33 @@ class GeoJSON:
 
         # Some sanity assertion:
         assert_geojson_sanity(geojson)
+
+        # Simple extent selection:
+        if xlim is not None:
+            if ylim is not None:
+                def select_points(x,y):
+                    return np.any((x >= xlim[0]) & (x <= xlim[1]) &
+                                  (y >= ylim[0]) & (y <= ylim[1]))
+            else:
+                def select_points(x,y):
+                    return np.any((x >= xlim[0]) & (x <= xlim[1]))
+            # TODO FIXME.
+            warn("In GeoJSON, polygon selection is currently point selection. "
+                 "This can cause polygons not to be selected if they "
+                 "completely contain the x and y extents.")
+            select_polygon = select_points
+        elif ylim is not None:
+            def select_points(x,y):
+                    return np.any((y >= ylim[0]) & (y <= ylim[1]))
+            # TODO FIXME.
+            warn("In GeoJSON, polygon selection is currently point selection. "
+                 "This can cause polygons not to be selected if they "
+                 "completely contain the x and y extents.")
+            select_polygon = select_points
+        else:
+            def select_points(x,y):
+                return True
+            select_polygon = select_points
 
         # Iterate through the features:
         points = []
@@ -59,6 +87,8 @@ class GeoJSON:
                 poly = []
                 for lola in rings:
                     x,y = proj(*np.array(lola).T)
+                    if not select_polygon(x,y):
+                        continue
                     poly.append(np.stack((x,y),axis=1))
                 polygons.append(poly)
 
@@ -70,9 +100,13 @@ class GeoJSON:
                     poly = []
                     for lola in rings:
                         x,y = proj(*np.array(lola).T)
+                        if not select_polygon(x,y):
+                            continue
                         poly.append(np.stack((x,y),axis=1))
-                    multipoly.append(poly)
-                multipolygons.append(multipoly)
+                    if len(poly) > 0:
+                        multipoly.append(poly)
+                if len(multipoly) > 0:
+                    multipolygons.append(multipoly)
             else:
                 raise RuntimeError("Unknown geometry type detected in "
                                    "GeoJSON feature.")
