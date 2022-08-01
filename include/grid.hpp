@@ -32,7 +32,7 @@ std::vector<std::vector<xy_t>>
 generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
                     double ymin, double ymax, int tick_spacing_degree,
                     double bisection_offset, double minimum_node_distance,
-                    double max_lat, double cut_at_angle_degrees);
+                    double max_lat);
 
 
 }

@@ -31,6 +31,7 @@ using flottekarte::ProjWrapper;
 using flottekarte::crop_and_refine;
 using flottekarte::path_xy_t;
 using flottekarte::path_geo_t;
+using flottekarte::refined_path_t;
 
 
 static long lon_ticks(int tick_spacing_degree)
@@ -57,8 +58,7 @@ std::vector<path_xy_t>
 flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
                     double xmax, double ymin, double ymax,
                     int tick_spacing_degree, double bisection_offset,
-                    double minimum_node_distance, double max_lat,
-                    double cut_at_angle_degrees)
+                    double minimum_node_distance, double max_lat)
 {
 	if (tick_spacing_degree == 0){
 		throw std::runtime_error("Cannot have zero ticks spacing.");
@@ -110,13 +110,13 @@ flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
 		}
 
 		/* Crop and refine the path: */
-		std::vector<path_xy_t>
+		refined_path_t
 		   refined(crop_and_refine(path, proj, xmin, xmax, ymin, ymax,
-		                           bisection_offset, minimum_node_distance,
-		                           cut_at_angle_degrees, false));
+		                           bisection_offset, minimum_node_distance));
 
 		/* Add the new segments: */
-		paths.insert(paths.cend(), refined.cbegin(), refined.cend());
+		paths.insert(paths.cend(), refined.segments.cbegin(),
+		             refined.segments.cend());
 	}
 
 	/* Construct the lines of constant latitude: */
@@ -135,13 +135,13 @@ flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
 		path.emplace_back(-nlon1*dlon1, lati);
 
 		/* Crop and refine the path: */
-		std::vector<path_xy_t>
+		refined_path_t
 		   refined(crop_and_refine(path, proj, xmin, xmax, ymin, ymax,
-		                           bisection_offset, minimum_node_distance,
-		                           cut_at_angle_degrees, true));
+		                           bisection_offset, minimum_node_distance));
 
 		/* Add the new segments: */
-		paths.insert(paths.cend(), refined.cbegin(), refined.cend());
+		paths.insert(paths.cend(), refined.segments.cbegin(),
+		             refined.segments.cend());
 	}
 
 	/* End: */

@@ -254,8 +254,7 @@ struct grid_lines_t {
 int compute_grid_lines(const char* proj_str, double xmin, double xmax,
                        double ymin, double ymax, int tick_spacing_degree,
                        double bisection_offset, double minimum_node_distance,
-                       double max_lat, double cut_at_angle_degrees,
-                       void** struct_ptr, size_t* Npath)
+                       double max_lat, void** struct_ptr, size_t* Npath)
 {
 	/* Empty initialization: */
 	if (!struct_ptr){
@@ -284,8 +283,7 @@ int compute_grid_lines(const char* proj_str, double xmin, double xmax,
 			glines->paths = generate_grid_lines(proj, xmin, xmax, ymin, ymax,
 			                                    tick_spacing_degree,
 			                                    bisection_offset,
-			                                    minimum_node_distance, max_lat,
-			                                    cut_at_angle_degrees);
+			                                    minimum_node_distance, max_lat);
 
 		} catch (...) {
 			/* Clean up: */
