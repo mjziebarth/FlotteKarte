@@ -167,16 +167,9 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 	std::vector<integer_level> int_levels
 	   = compute_integer_levels(fun, zmin, zmax);
 
-	auto ax_label = [](axis_t ax) -> const char* {
-		if (ax == AX_BOT)
-			return "bot";
-		else if (ax == AX_TOP)
-			return "top";
-		else if (ax == AX_LEFT)
-			return "left";
-		else if (ax == AX_RIGHT)
-			return "right";
-	};
+	/* Early exit if no levels: */
+	if (int_levels.empty())
+		return std::vector<geo_degrees_t>();
 
 	/* Check whether the 180°=-180° meridian can be part of the
 	 * tick set: */
