@@ -63,7 +63,8 @@ def generate_axes_grid(ax: Axes,
                        tick_spacing: float = 1.0, tick_bot: str = 'auto',
                        tick_top: str = 'auto', tick_left: str = 'lat',
                        tick_right: str = 'lat', proj: Optional[Proj] = None,
-                       fontsize: int = 8, grid_cuts: Optional[list] = None):
+                       fontsize: int = 8, grid_cuts: Optional[list] = None,
+                       rotate_labels: bool = True):
     """
     Generates the axes grid.
     """
@@ -323,6 +324,14 @@ def generate_axes_grid(ax: Axes,
     tl = margin_ticks
     tick_off *= tl / np.linalg.norm(tick_off, axis=1)[:,np.newaxis]
 
+    # Computing label rotation based on angle:
+    def rotation_angle(angle):
+        if not rotate_labels:
+            return 0
+        if angle == -90:
+            return 90
+        return ((-angle + 90.0) % 180.0) - 90.0
+
     # Iterate through all of the ticks, plot the labels (temporarily)
     # and decide whether to keep them:
     labels = []
@@ -346,7 +355,8 @@ def generate_axes_grid(ax: Axes,
             va = 'top'
         txt = ax.text(*(xy + off), tick_text(kv[0][2]*tick_spacing,
                                              which=kv[0][1]),
-                      ha=ha, va=va, fontsize=fontsize)
+                      ha=ha, va=va, fontsize=fontsize,
+                      rotation=rotation_angle(angle))
         labels.append(txt)
 
     # Make sure that a draw has been issued so that we can get the
