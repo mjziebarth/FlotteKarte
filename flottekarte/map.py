@@ -18,6 +18,7 @@
 # limitations under the Licence.
 
 import numpy as np
+from typing import Union
 from pyproj import Proj
 
 
@@ -25,6 +26,7 @@ from pyproj import Proj
 from .axes import generate_axes_grid
 from .grid import plot_grid
 from .data import GeoJSON
+from .extensions.boundary import map_boundary
 
 
 class Map:
@@ -41,6 +43,10 @@ class Map:
             proj = Proj(proj_str)
         self.proj = proj
         self._grid_cuts = []
+
+        # Compute the map boundary:
+        self.boundary_vertices, self.boundary_normal_angles \
+            = map_boundary(proj_str, *xlim, *ylim)
 
         # Some initialization:
         ax.set_aspect('equal')
@@ -63,17 +69,18 @@ class Map:
                    (ylim[0]-margin, ylim[1]+margin), proj)
 
     def plot_axes(self, tick_spacing: float = 1.0,
-                  tick_bot: str = 'lon', tick_top: str = 'lon',
-                  tick_left:str = 'lat', tick_right: str = 'lat',
-                  linewidth: float = 0.8, fontsize: float = 8.0):
+                  which_ticks: Union[str,list] = 'auto',
+                  linewidth: float = 0.8, fontsize: float = 8.0,
+                  rotate_labels: bool = True):
         """
         Add axes and ticks to the plot.
         """
-        generate_axes_grid(self.ax, self.xlim, self.ylim, self.proj_str,
-                           tick_spacing=tick_spacing, tick_bot=tick_bot,
-                           tick_top=tick_top, tick_left=tick_left,
-                           tick_right=tick_right, proj=self.proj,
-                           fontsize=fontsize, grid_cuts=self._grid_cuts)
+        generate_axes_grid(self.ax, self.boundary_vertices,
+                           self.boundary_normal_angles, self.proj_str,
+                           tick_spacing=tick_spacing, which_ticks=which_ticks,
+                           proj=self.proj, fontsize=fontsize,
+                           grid_cuts=self._grid_cuts,
+                           rotate_labels=rotate_labels)
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
                   bisection_offset='auto', minimum_node_distance='auto',

@@ -19,33 +19,21 @@
 
 import numpy as np
 from .cdll import _cdll
-from ctypes import c_double, POINTER, c_char_p, c_uint, c_ubyte
+from ctypes import c_double, POINTER, c_char_p, c_uint, c_ubyte, c_ulong, byref
 from typing import Optional, Tuple
 
-def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
-                       ymax: float, tick_spacing: float,
-                       bot: Optional[str] = 'lon', top: Optional[str] = 'lon',
-                       left: Optional[str] = 'lat',
-                       right: Optional[str] = 'lat') \
-   -> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+def compute_axes_ticks(proj_str: str, boundary: np.ndarray,
+                       tick_spacing: float) \
+    -> Tuple[np.ndarray,np.ndarray,np.ndarray]:
     """
 
     """
     # Sanity:
-    xmin = float(xmin)
-    xmax = float(xmax)
-    ymin = float(ymin)
-    ymax = float(ymax)
+    boundary = np.ascontiguousarray(boundary)
+    if boundary.ndim != 2 or  boundary.shape[1] != 2:
+        raise RuntimeError("`boundary` must have shape (Nx2)")
     tick_spacing = float(tick_spacing)
     proj_str = str(proj_str)
-    t2i = {'lon' : 0, 'lat': 1, None: 2}
-    if any(t not in t2i for t in (bot,top,left,right)):
-        raise RuntimeError("Ticks `bot`, `top`, `left` and `right` must "
-                           "be one of 'lon', 'lat', or None.")
-    bot = t2i[bot]
-    top = t2i[top]
-    left = t2i[left]
-    right = t2i[right]
 
     # Determine the projection
     proj_split = [p.split("=") for p in proj_str.split()]
@@ -55,26 +43,26 @@ def compute_axes_ticks(proj_str: str, xmin: float, xmax: float, ymin: float,
         raise RuntimeError("No projection given.")
 
     # Create the output buffers and call C code:
-    Nmax = 100
-    ticks_bot = np.zeros((Nmax,2))
-    ticks_top = np.zeros((Nmax,2))
-    ticks_left = np.zeros((Nmax,2))
-    ticks_right = np.zeros((Nmax,2))
+    Nmax = 1000
+    tick_vertices = np.zeros((Nmax,2))
+    segments = np.zeros(Nmax, dtype=np.uintc)
+    which_ticks = np.zeros(Nmax, dtype=np.uint8)
     proj_str = proj_str.encode("ascii")
-    ticks_lengths = np.zeros(4, dtype=np.uintc)
+    Nticks = c_uint(0)
 
-    res = _cdll.compute_axes_ticks(c_char_p(proj_str), c_double(xmin),
-                            c_double(xmax), c_double(ymin), c_double(ymax),
-                            c_double(tick_spacing), c_uint(Nmax), c_ubyte(bot),
-                            c_ubyte(top), c_ubyte(left), c_ubyte(right),
-                            ticks_bot.ctypes.data_as(POINTER(c_double)),
-                            ticks_top.ctypes.data_as(POINTER(c_double)),
-                            ticks_left.ctypes.data_as(POINTER(c_double)),
-                            ticks_right.ctypes.data_as(POINTER(c_double)),
-                            ticks_lengths.ctypes.data_as(POINTER(c_uint)))
+    res = _cdll.compute_axes_ticks(c_char_p(proj_str),
+                                c_ulong(boundary.shape[0]),
+                                boundary.ctypes.data_as(POINTER(c_double)),
+                                c_double(tick_spacing), c_uint(Nmax),
+                                segments.ctypes.data_as(POINTER(c_uint)),
+                                tick_vertices.ctypes.data_as(POINTER(c_double)),
+                                which_ticks.ctypes.data_as(POINTER(c_ubyte)),
+                                byref(Nticks))
+
+    Nticks = Nticks.value
 
     if res != 0:
         raise RuntimeError("grad_east_north backend failed.")
 
-    return (ticks_bot[:ticks_lengths[0]], ticks_top[:ticks_lengths[1]],
-            ticks_left[:ticks_lengths[2]], ticks_right[:ticks_lengths[3]])
+    return (tick_vertices[:Nticks].copy(), which_ticks[:Nticks].copy(),
+            segments[:Nticks].copy())

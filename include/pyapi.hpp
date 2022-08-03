@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *                    Malte J. Ziebarth
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -48,13 +49,10 @@ int scale_factors(const char* proj_str, unsigned long Npoints,
                   const double* lon, const double* lat,
                   double* kh, double stencil_delta);
 
-int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
-                       double ymin, double ymax, double tick_spacing_degree,
-                       unsigned int max_ticks_per_axis,
-                       unsigned char which_bot, unsigned char which_top,
-                       unsigned char which_left, unsigned char which_right,
-                       double* bot_ticks, double* top_ticks,
-                       double* left_ticks, double* right_ticks,
+int compute_axes_ticks(const char* proj_str, size_t Nseg,
+                       const double* vertices, double tick_spacing_degree,
+                       unsigned int max_ticks, unsigned int* segments,
+                       double* tick_vertices, unsigned char* which_ticks,
                        unsigned int* Nticks);
 
 /*
@@ -88,6 +86,29 @@ int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes,
  * compute_grid_lines has successfully completed.
  */
 int clean_grid_lines_struct(void* struct_ptr);
+
+
+/*
+ * This is the first part of another three-part function.
+ * Computes a bounding polygon.
+ */
+int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
+                             double ymin, double ymax, void** struct_ptr,
+                             size_t* Nvert);
+
+/*
+ * Second part of the bounding polygon computation.
+ * Saves the bounding polygon.
+ */
+int save_bounding_polygon(const void* struct_ptr, double* vertices,
+                          double* angles);
+
+/*
+ * Last part of the bounding polygon computation.
+ * Removes the bounding polygon structure.
+ */
+int clean_bounding_polygon_struct(void* struct_ptr);
+
 
 }
 

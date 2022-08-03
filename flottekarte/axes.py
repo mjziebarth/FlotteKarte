@@ -20,10 +20,10 @@
 
 import numpy as np
 from .extensions import compute_axes_ticks, invert_proj, gradients_east_north
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon
 from matplotlib.collections import LineCollection
 from matplotlib.axes import Axes
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 from pyproj import Proj
 
 def tick_text(tick: float, which: str = 'lon'):
@@ -57,17 +57,27 @@ def extract_grid_ticks_for_rectangular_axes(grid_cuts, xlim, ylim, tol):
     return tick_b, tick_t, tick_l, tick_r
 
 
-def generate_axes_grid(ax: Axes,
-                       xlim: Tuple[float,float], ylim: Tuple[float,float],
+def generate_axes_grid(ax: Axes, boundary: np.ndarray,
+                       boundary_angles: np.ndarray,
                        proj_str: str, linewidth: float = 0.8,
-                       tick_spacing: float = 1.0, tick_bot: str = 'auto',
-                       tick_top: str = 'auto', tick_left: str = 'lat',
-                       tick_right: str = 'lat', proj: Optional[Proj] = None,
-                       fontsize: int = 8, grid_cuts: Optional[list] = None,
+                       tick_spacing: float = 1.0,
+                       which_ticks: Union[str,list] = 'auto',
+                       proj: Optional[Proj] = None, fontsize: int = 8,
+                       grid_cuts: Optional[list] = None,
                        rotate_labels: bool = True):
     """
     Generates the axes grid.
     """
+    # Compute the limits:
+    xlim = float(boundary[:,0].min()), float(boundary[:,0].max())
+    ylim = float(boundary[:,1].min()), float(boundary[:,1].max())
+
+    # Boundary sanity:
+    Nseg = boundary.shape[0]
+    if boundary_angles.shape != (Nseg,):
+        raise RuntimeError("`boundary` and `boundary_angles` do not fit "
+                           "together.")
+
     # Allocate space *on the Figure axis* for the map axes labels:
     Dx = xlim[1] - xlim[0]
     Dy = ylim[1] - ylim[0]
@@ -86,23 +96,22 @@ def generate_axes_grid(ax: Axes,
             for h1 in h:
                 zorder = max(h1.get_zorder(), zorder)
 
-    # Add the axes rect at new maximum zorder:
-    ax_rect = Rectangle((xlim[0],ylim[0]), xlim[1]-xlim[0], ylim[1]-ylim[0],
-                        facecolor='none', edgecolor='k', linewidth=linewidth,
-                        zorder=zorder+10)
-    hpatch = ax.add_patch(ax_rect)
+    # Add the axes boundary at new maximum zorder:
+    ax_boundary = Polygon(boundary, facecolor='none', edgecolor='k',
+                          linewidth=linewidth, zorder=zorder+10)
+    hpatch = ax.add_patch(ax_boundary)
 
-    # Set this rect to clip path for everything plotted so far:
+    # Set this boundary to clip path for everything plotted so far:
     for h in ax.get_children():
         if h == hpatch:
             continue
         try:
             # TODO: Here we have to check whether a clip path is already
             # set! If so, we have to combine both clips:
-            h.set_clip_path(ax_rect)
+            h.set_clip_path(ax_boundary)
         except:
             for h1 in h:
-                h.set_clip_path(ax_rect)
+                h.set_clip_path(ax_boundary)
 
     # Sanity check on the tick parameters:
     def tick_param_error(t):
@@ -127,31 +136,23 @@ def generate_axes_grid(ax: Axes,
                 return True
         return False
 
-    # TODO: This is a hotfix that might be removed later.
-    if tick_bot == 'auto':
-        tick_bot = 'lon'
-    if tick_top == 'auto':
-        tick_top = 'lon'
-    if tick_left == 'auto':
-        tick_left = 'lat'
-    if tick_right == 'auto':
-        tick_right = 'lat'
+    if isinstance(which_ticks,str):
+        which_ticks = [which_ticks for i in range(boundary.shape[0])]
 
-    if any(tick_param_error(t) for t in [tick_bot, tick_top, tick_left,
-                                         tick_right]):
+    if any(tick_param_error(t) for t in which_ticks):
         raise ValueError("Only 'auto', 'lon', 'lat', or None are valid values "
-                         "for tick_* parameters.")
+                         "for which_ticks parameter.")
 
     # Make sure that we can project:
     if proj is None:
         proj = Proj(proj_str)
 
-    # TODO: Currently, the ticks are determined only for the four axes
-    # bottom, top, left, right. We hence compute four desired ratings.
-    # In the future, this might be expanded to non-rectangular boundaries
-    # by computing the ticks for a line string, with each segment having
-    # its own desired tick (lon or lat) defined.
-    desired_ticks = [tick_bot, tick_top, tick_left, tick_right]
+    # Compute desired ticks based on angles:
+    def desired_tick(angle):
+        if (angle <= -45 and angle >= -135) or (angle >= 45 and angle <= 135):
+            return 'lat'
+        return 'lon'
+    desired_ticks = [desired_tick(ang) for ang in boundary_angles]
 
     # Create a weight key for the ticks. If two ticks collide because space
     # is too small, keep the one with the higher weight. The weight key is
@@ -205,48 +206,46 @@ def generate_axes_grid(ax: Axes,
     # Here, compute both longitude and latitude ticks for all axes
     # so that we can later select the best-fitting ticks.
     tick_candidates = {}
-    for j,which in enumerate(("lon","lat")):
-        # Use C++ backend to compute quickly all ticks along the four axes:
-        ticks_btlr \
-           = compute_axes_ticks(proj_str, *xlim, *ylim, tick_spacing,
-                                bot=which, top=which, left=which, right=which)
 
-        for i,(ticks,desired) in enumerate(zip(ticks_btlr,desired_ticks)):
-            # Shortcut if no ticks desired:
-            if desired is None:
-                continue
+    # Use C++ backend to compute quickly all ticks along the boundary:
+    ticks_axes, which_ticks_axes, segments_ticks_axes \
+       = compute_axes_ticks(proj_str, boundary, tick_spacing)
 
-            # Determine the tick values (e.g. lon = 15.0)
-            # in multiples of the tick spacing.
-            tick_values = [int(t) for t in np.round(ticks[:,j] / tick_spacing)]
+    for i in range(Nseg):
+        # Find all ticks belonging to this segment:
+        tick_ids = np.argwhere(segments_ticks_axes == i).reshape(-1)
+        if tick_ids.size == 0:
+            continue
 
-            # Weight according to the desired ticks:
-            tick_weight = compute_tick_weights(desired, tick_values,
-                                               [which] * len(tick_values),
-                                               False)
+        # Extract the ticks:
+        ticks = ticks_axes[tick_ids,:]
+        which_i = which_ticks_axes[tick_ids]
+        which = [("lon","lat")[j] for j in which_i]
 
-            # Project:
-            ticks_x, ticks_y = proj(*ticks.T)
+        desired = desired_ticks[i]
+        # Shortcut if no ticks desired:
+        if desired is None:
+            continue
 
-            # The normal angle of the segment at the tick location.
-            # TODO: Hotfix. In the future, we should consider the orientation
-            # of a potentially complex boundary path.
-            if i == 0:
-                angle = 180
-            elif i == 1:
-                angle = 0
-            elif i == 2:
-                angle = -90
-            elif i == 3:
-                angle = 90
+        # Determine the tick values (e.g. lon = 15.0)
+        # in multiples of the tick spacing.
+        tick_values = [int(round(t[w] / tick_spacing)) for t,w in
+                       zip(ticks, which_i)]
 
-            # Add the tick candidates:
-            tick_candidates.update({
-                (i,which,val) : (weight,(x,y), (float(lola[0]),float(lola[1])),
-                                 angle)
-                for val, weight, x, y, lola in zip(tick_values, tick_weight,
-                                                   ticks_x, ticks_y, ticks)
-            })
+        # Weight according to the desired ticks:
+        tick_weight = compute_tick_weights(desired, tick_values, which, False)
+
+        # Project:
+        ticks_x, ticks_y = proj(*ticks.T)
+
+        # Add the tick candidates:
+        tick_candidates.update({
+            (i,whch,val) : (weight,(x,y), (float(lola[0]),float(lola[1])),
+                            boundary_angles[i])
+            for val, weight, x, y, lola, whch in zip(tick_values, tick_weight,
+                                                     ticks_x, ticks_y, ticks,
+                                                     which)
+        })
 
     # Tick candidates from grid ticks:
     if grid_cuts is not None:
@@ -317,8 +316,8 @@ def generate_axes_grid(ax: Axes,
 
     # Ensure the right direction (pointing outward of the map)
     tna_rad = np.deg2rad(tick_normal_angle)
-    points_inward = (tick_off * np.stack((np.sin(tna_rad), np.cos(tna_rad)),
-                                         axis = 1)).sum(axis=1) < 0
+    outward = np.stack((np.sin(tna_rad), np.cos(tna_rad)), axis = 1)
+    points_inward = (tick_off * outward).sum(axis=1) < 0
     tick_off[points_inward] *= -1
 
     tl = margin_ticks
@@ -332,30 +331,25 @@ def generate_axes_grid(ax: Axes,
             return 90
         return ((-angle + 90.0) % 180.0) - 90.0
 
+    # Make sure that a draw has been issued so that we can get the
+    # window extents of the labels:
+    ax.get_figure().canvas.draw_idle()
+    transform = ax.transData.inverted()
+    dot2data = np.sqrt(np.sum((ax.get_figure().dpi_scale_trans + transform)
+                              .get_matrix()[:2,:2]**2)) / 72.
+
     # Iterate through all of the ticks, plot the labels (temporarily)
     # and decide whether to keep them:
     labels = []
-    for kv, off, xy, angle in zip(ticks_ordered, tick_off, ticks_xy,
-                                  tick_normal_angle):
-        if angle > -45 and angle < 45:
-            # Normal faces upward.
-            ha = 'center'
-            va = 'bottom'
-        elif angle > 45 and angle < 135:
-            # Normal faces right.
-            ha = 'left'
-            va = 'center'
-        elif angle > -135 and angle < -45:
-            # Normal faces left.
-            ha = 'right'
-            va = 'center'
-        else:
-            # Normal faces bottom.
-            ha = 'center'
-            va = 'top'
-        txt = ax.text(*(xy + off), tick_text(kv[0][2]*tick_spacing,
-                                             which=kv[0][1]),
-                      ha=ha, va=va, fontsize=fontsize,
+
+    for kv, off, xy, angle, out in zip(ticks_ordered, tick_off, ticks_xy,
+                                       tick_normal_angle, outward):
+        # Offset due to the font size height, rotated:
+        rot_off = 0.5 * fontsize * dot2data * out
+
+        txt = ax.text(*(xy + off + rot_off),
+                      tick_text(kv[0][2]*tick_spacing, which=kv[0][1]),
+                      ha='center', va='center', fontsize=fontsize,
                       rotation=rotation_angle(angle))
         labels.append(txt)
 
@@ -365,7 +359,6 @@ def generate_axes_grid(ax: Axes,
 
     # Collect all of the window extents:
     bboxes = []
-    transform = ax.transData.inverted()
     renderer = ax.get_figure().canvas.get_renderer()
     for txt in labels:
         # Get the extent of the text:

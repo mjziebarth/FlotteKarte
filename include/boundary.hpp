@@ -1,10 +1,10 @@
 /*
- * Utility for finding ticks along an axis.
+ * Compute the boundary of a map based on the (approximate) bijectivity of the
+ * map projection.
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
- *                    Malte J. Ziebarth
+ * Copyright (C) 2022 Malte J. Ziebarth
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -21,26 +21,14 @@
  */
 
 #include <../include/types.hpp>
-#include <../include/griddedinverter.hpp>
-#include <vector>
 
-#ifndef FLOTTEKARTE_TICKFINDER_HPP
-#define FLOTTEKARTE_TICKFINDER_HPP
+#ifndef FLOTTEKARTE_BOUNDARY_HPP
+#define FLOTTEKARTE_BOUNDARY_HPP
 
 namespace flottekarte {
 
-struct segment_tick_t {
-	size_t segment;
-	geo_degrees_t tick;
-
-	segment_tick_t() = default;
-
-	segment_tick_t(size_t segment, double lon, double lat);
-};
-
-std::vector<segment_tick_t>
-compute_ticks(const ProjWrapper&, const GriddedInverter&, tick_t,
-              const path_xy_t&, double tick_spacing);
+void bounding_polygon(const ProjWrapper& proj, double xmin, double xmax,
+                      double ymin, double ymax, path_xy_t& poly);
 
 }
 

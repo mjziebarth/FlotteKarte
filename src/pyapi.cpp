@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *                    Malte J. Ziebarth
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -26,13 +27,16 @@
 #include <../include/gradient.hpp>
 #include <../include/tickfinder.hpp>
 #include <../include/grid.hpp>
+#include <../include/boundary.hpp>
 #include <iostream>
+#include <cmath>
 
 using flottekarte::xy_t;
 using flottekarte::geo_t;
 using flottekarte::cut_t;
 using flottekarte::axis_t;
 using flottekarte::tick_t;
+using flottekarte::modulo;
 using flottekarte::rad2deg;
 using flottekarte::deg2rad;
 using flottekarte::path_xy_t;
@@ -40,9 +44,11 @@ using flottekarte::ProjError;
 using flottekarte::geo_grid_t;
 using flottekarte::ProjWrapper;
 using flottekarte::geo_degrees_t;
+using flottekarte::segment_tick_t;
 using flottekarte::GriddedInverter;
 using flottekarte::generate_grid_lines;
 using flottekarte::gradient_descent_inverse_project;
+using flottekarte::bounding_polygon;
 using flottekarte::compute_ticks;
 using flottekarte::Gradient;
 using flottekarte::FORWARD_5POINT;
@@ -169,13 +175,13 @@ int scale_factors(const char* proj_str, unsigned long Npoints,
 	}
 }
 
-int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
-                       double ymin, double ymax, double tick_spacing_degree,
-                       unsigned int max_ticks_per_axis,
-                       unsigned char which_bot, unsigned char which_top,
-                       unsigned char which_left, unsigned char which_right,
-                       double* bot_ticks, double* top_ticks,
-                       double* left_ticks, double* right_ticks,
+int compute_axes_ticks(const char* proj_str,
+                       size_t Nseg, const double* vertices,
+                       double tick_spacing_degree,
+                       unsigned int max_ticks,
+                       unsigned int* segments,
+                       double* tick_vertices,
+                       unsigned char* which_ticks,
                        unsigned int* Nticks)
 {
 	/* Initialize the projection: */
@@ -192,31 +198,44 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 		#endif
 
 		/* Prepare everything for loop execution: */
-		std::array<axis_t,4> axes({flottekarte::AX_BOT,
-		                           flottekarte::AX_TOP,
-		                           flottekarte::AX_LEFT,
-		                           flottekarte::AX_RIGHT});
-		std::array<tick_t,4> tick({static_cast<tick_t>(which_bot),
-		                           static_cast<tick_t>(which_top),
-		                           static_cast<tick_t>(which_left),
-		                           static_cast<tick_t>(which_right)});
-		std::array<double*,4> tick_out({bot_ticks, top_ticks, left_ticks,
-		                                right_ticks});
-		std::array<std::vector<geo_t>,4> ticks;
-
-		const size_t Nmax = static_cast<size_t>(max_ticks_per_axis);
-		#pragma omp parallel for
-		for (int i=0; i<4; ++i){
-			std::vector<geo_degrees_t> ticks
-			   = compute_ticks(proj, ginv, axes[i], tick[i], xmin, xmax,
-			                   ymin, ymax, tick_spacing_degree);
-			size_t Ni = std::min<size_t>(ticks.size(), Nmax);
-			for (size_t j=0; j<Ni; ++j){
-				*(tick_out[i] + 2*j) = ticks[j].lon;
-				*(tick_out[i] + 2*j + 1) = ticks[j].lat;
-			}
-			Nticks[i] = static_cast<unsigned int>(Ni);
+		constexpr tick_t tick[2] = {flottekarte::TICK_LON,
+		                            flottekarte::TICK_LAT};
+		path_xy_t path(Nseg);
+		for (xy_t& xy : path){
+			xy.x = *vertices;
+			++vertices;
+			xy.y = *vertices;
+			++vertices;
 		}
+
+		const size_t Nmax = static_cast<size_t>(max_ticks);
+		std::array<std::vector<segment_tick_t>,2> ticks;
+		#pragma omp parallel for schedule(static,1)
+		for (int i=0; i<2; ++i){
+			ticks[i]
+			   = compute_ticks(proj, ginv, tick[i], path, tick_spacing_degree);
+		}
+		size_t n=0;
+		for (int i=0; i<2; ++i){
+			const size_t Nremain = Nmax - n;
+			const size_t Ni = std::min<size_t>(ticks[i].size(), Nremain);
+			for (size_t j=0; j<Ni; ++j){
+				*tick_vertices = ticks[i][j].tick.lon;
+				++tick_vertices;
+				*tick_vertices = ticks[i][j].tick.lat;
+				++tick_vertices;
+				*segments = ticks[i][j].segment;
+				++segments;
+				*which_ticks = static_cast<unsigned char>(tick[i]);
+				++which_ticks;
+			}
+			n += Ni;
+			if (n == Nmax){
+				std::cout << "Warning: Reached maximum number of ticks.\n";
+				break;
+			}
+		}
+		*Nticks = static_cast<unsigned int>(n);
 
 		#ifdef DEBUG
 		std::cout << "cleaning up!\n" << std::flush;
@@ -393,6 +412,147 @@ int clean_grid_lines_struct(void* struct_ptr)
 	/* Delete the grid_lines_t struct, calling all necessary destructors: */
 	grid_lines_t* glines = static_cast<grid_lines_t*>(struct_ptr);
 	delete glines;
+
+	/* Success. */
+	return 0;
+}
+
+
+/******************************************************************************
+ *                   Computing the bounding polygon.                          *
+ ******************************************************************************/
+
+int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
+                             double ymin, double ymax, void** struct_ptr,
+                             size_t* Nvert)
+{
+	/* Empty initialization: */
+	if (!struct_ptr){
+		std::cerr << "No pointer to write struct given.\n";
+		return 3;
+	}
+	if (!Nvert){
+		std::cerr << "No pointer to write Nver given.\n";
+		return 4;
+	}
+	*struct_ptr = nullptr;
+	*Nvert = 0;
+
+	try {
+		/* Create the projection wrapper: */
+		ProjWrapper proj(proj_str);
+
+		/* Generate the bounding polygon structure: */
+		path_xy_t* poly = new path_xy_t();
+
+		/* Save it to the output pointer: */
+		*struct_ptr = static_cast<void*>(poly);
+
+		/* Compute the polygon: */
+		try {
+			bounding_polygon(proj, xmin, xmax, ymin, ymax, *poly);
+		} catch (...) {
+			/* Clean up: */
+			delete poly;
+			struct_ptr = nullptr;
+
+			return 1;
+		}
+
+		/* Number of vertices: */
+		*Nvert = poly->size();
+
+		/* Success. */
+		return 0;
+
+	} catch (const ProjError& err){
+		/* Could not create the projection object: */
+		std::cerr << "ProjError: " << err.what() << "\n";
+		return 2;
+	} catch (const std::bad_alloc& err){
+		/* Could not allocate memory somewhere. */
+		std::cerr << "Memory allocation error in compute_bounding_polygon.\n";
+		return 5;
+	}
+}
+
+
+int save_bounding_polygon(const void* struct_ptr, double* vertices,
+                          double* angles)
+{
+	/* Cast the struct: */
+	if (!struct_ptr){
+		std::cerr << "No pointer to struct given.\n";
+		return 1;
+	}
+	const path_xy_t& poly = *static_cast<const path_xy_t*>(struct_ptr);
+
+	/* Check for empty polygon: */
+	if (poly.empty())
+		return 0;
+
+	/* Sanity check: */
+	if (!vertices){
+		std::cerr << "No pointer to vertices given.\n";
+		return 2;
+	}
+	if (!angles){
+		std::cerr << "No pointer to angles given.\n";
+		return 2;
+	}
+
+	/* Computing a segment angle: */
+	auto segment_angle = [](const xy_t& last, const xy_t& next) -> double {
+		/* First the forward direction this segment */
+		const double dx = next.x - last.x;
+		const double dy = next.y - last.y;
+		/* The orthogonal outwards-pointing direction is
+		 * dx' = dy
+		 * dy' = -dx
+		 * This makes use of the fact that the bounding polygon winds
+		 * counterclockwise. Compute the angle of this direction in the
+		 * coordinate system used in the Python code: clockwise from the
+		 * positive y-axis.
+		 */
+		const double angle = -modulo(rad2deg(std::atan2(-dx, dy)) - 90.0,
+		                             360.0);
+		if (angle < -180.0)
+			return angle + 360.0;
+		return angle;
+	};
+
+	/* Fill the arrays: */
+	auto it = poly.cbegin();
+	*vertices = it->x;
+	++vertices;
+	*vertices = it->y;
+	++vertices;
+	auto last = it;
+	for (++it; it != poly.cend(); ++it){
+		/* Fill the vertex: */
+		*vertices = it->x;
+		++vertices;
+		*vertices = it->y;
+		++vertices;
+		/* Compute and fill the angle. */
+		*angles = segment_angle(*last, *it);
+		++angles;
+		last = it;
+	}
+	/* The last segment back to the start: */
+	*angles = segment_angle(*last, poly[0]);
+
+	return 0;
+}
+
+int clean_bounding_polygon_struct(void* struct_ptr)
+{
+	if (struct_ptr == nullptr)
+		return 1;
+
+	/* Delete the grid_lines_t struct, calling all necessary destructors: */
+	path_xy_t* poly = static_cast<path_xy_t*>(struct_ptr);
+	delete poly;
 
 	/* Success. */
 	return 0;
