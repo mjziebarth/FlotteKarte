@@ -64,8 +64,9 @@ def generate_axes_grid(ax, xlim, ylim, proj_str, linewidth=0.8,
                 zorder = max(h1.get_zorder(), zorder)
 
     # Add the axes rect at new maximum zorder:
-    ax_rect = Rectangle((xlim[0],ylim[0]), xlim[1]-xlim[0], ylim[1]-ylim[0], facecolor='none',
-                        edgecolor='k', linewidth=linewidth, zorder=zorder+10)
+    ax_rect = Rectangle((xlim[0],ylim[0]), xlim[1]-xlim[0], ylim[1]-ylim[0],
+                        facecolor='none', edgecolor='k', linewidth=linewidth,
+                        zorder=zorder+10)
     hpatch = ax.add_patch(ax_rect)
 
     # Set this rect to clip path for everything plotted so far:
