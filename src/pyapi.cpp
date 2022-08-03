@@ -322,6 +322,10 @@ int compute_grid_lines(const char* proj_str, double xmin, double xmax,
 		/* Could not create the projection object: */
 		std::cerr << "ProjError: " << err.what() << "\n";
 		return 2;
+	} catch (const std::bad_alloc& err){
+		/* Possibly could not allocate the grid lines object. */
+		std::cerr << "Memory allocation error.\n";
+		return 6;
 	}
 }
 
