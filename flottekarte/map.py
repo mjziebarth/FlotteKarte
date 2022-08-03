@@ -71,7 +71,9 @@ class Map:
     def plot_axes(self, tick_spacing: float = 1.0,
                   which_ticks: Union[str,list] = 'auto',
                   linewidth: float = 0.8, fontsize: float = 8.0,
-                  rotate_labels: bool = True):
+                  rotate_labels: bool = True, ticks_bot: bool = True,
+                  ticks_top: bool = True, ticks_left: bool = True,
+                  ticks_right: bool = True):
         """
         Add axes and ticks to the plot.
         """
@@ -80,7 +82,9 @@ class Map:
                            tick_spacing=tick_spacing, which_ticks=which_ticks,
                            proj=self.proj, fontsize=fontsize,
                            grid_cuts=self._grid_cuts,
-                           rotate_labels=rotate_labels)
+                           rotate_labels=rotate_labels, ticks_bot=ticks_bot,
+                           ticks_top=ticks_top, ticks_left=ticks_left,
+                           ticks_right=ticks_right)
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
                   bisection_offset='auto', minimum_node_distance='auto',

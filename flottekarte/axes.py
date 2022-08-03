@@ -64,7 +64,9 @@ def generate_axes_grid(ax: Axes, boundary: np.ndarray,
                        which_ticks: Union[str,list] = 'auto',
                        proj: Optional[Proj] = None, fontsize: int = 8,
                        grid_cuts: Optional[list] = None,
-                       rotate_labels: bool = True):
+                       rotate_labels: bool = True,
+                       ticks_bot: bool = True, ticks_top: bool = True,
+                       ticks_left: bool = True, ticks_right: bool = True):
     """
     Generates the axes grid.
     """
@@ -380,13 +382,28 @@ def generate_axes_grid(ax: Axes, boundary: np.ndarray,
                 return True
         return False
 
+    def out_of_bounds(bb):
+        if not ticks_right and bb[1] > xlim[1]:
+            return True
+        if not ticks_left and bb[0] < xlim[0]:
+            return True
+        if not ticks_bot and bb[2] < ylim[0]:
+            return True
+        if not ticks_top and bb[3] > ylim[1]:
+            return True
+        return False
+
     for i,bbi in enumerate(bboxes):
-        maski = True
-        for bbj in bboxes[:i]:
-            if overlaps(bbi,bbj):
-                maski = False
-                labels[i].remove()
-                break
+        if out_of_bounds(bbi):
+            maski = False
+            labels[i].remove()
+        else:
+            maski = True
+            for bbj in bboxes[:i]:
+                if overlaps(bbi,bbj):
+                    maski = False
+                    labels[i].remove()
+                    break
         # Check the overlap:
         mask.append(maski)
 
