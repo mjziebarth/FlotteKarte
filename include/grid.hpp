@@ -27,8 +27,19 @@
 
 namespace flottekarte {
 
+struct cut_t {
+	xy_t point;
+	tick_t tick_type;
+	double coordinate;
+};
 
-std::vector<std::vector<xy_t>>
+struct geo_grid_t {
+	std::vector<path_xy_t> paths;
+	std::vector<cut_t> cuts;
+};
+
+
+geo_grid_t
 generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
                     double ymin, double ymax, int tick_spacing_degree,
                     double bisection_offset, double minimum_node_distance,

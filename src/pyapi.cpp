@@ -30,12 +30,14 @@
 
 using flottekarte::xy_t;
 using flottekarte::geo_t;
+using flottekarte::cut_t;
 using flottekarte::axis_t;
 using flottekarte::tick_t;
 using flottekarte::rad2deg;
 using flottekarte::deg2rad;
 using flottekarte::path_xy_t;
 using flottekarte::ProjError;
+using flottekarte::geo_grid_t;
 using flottekarte::ProjWrapper;
 using flottekarte::geo_degrees_t;
 using flottekarte::GriddedInverter;
@@ -237,6 +239,7 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 
 struct grid_lines_t {
 	std::vector<path_xy_t> paths;
+	std::vector<cut_t> cuts;
 };
 
 /*
@@ -254,7 +257,8 @@ struct grid_lines_t {
 int compute_grid_lines(const char* proj_str, double xmin, double xmax,
                        double ymin, double ymax, int tick_spacing_degree,
                        double bisection_offset, double minimum_node_distance,
-                       double max_lat, void** struct_ptr, size_t* Npath)
+                       double max_lat, void** struct_ptr, size_t* Npath,
+                       size_t* Ncut)
 {
 	/* Empty initialization: */
 	if (!struct_ptr){
@@ -265,8 +269,13 @@ int compute_grid_lines(const char* proj_str, double xmin, double xmax,
 		std::cerr << "No pointer to write Npath given.\n";
 		return 4;
 	}
+	if (!Ncut){
+		std::cerr << "No pointer to write Ncut given.\n";
+		return 5;
+	}
 	*struct_ptr = nullptr;
 	*Npath = 0;
+	*Ncut = 0;
 
 	try {
 		/* Create the projection wrapper: */
@@ -280,10 +289,13 @@ int compute_grid_lines(const char* proj_str, double xmin, double xmax,
 
 		/* Compute the grid lines: */
 		try {
-			glines->paths = generate_grid_lines(proj, xmin, xmax, ymin, ymax,
+			geo_grid_t grid(generate_grid_lines(proj, xmin, xmax, ymin, ymax,
 			                                    tick_spacing_degree,
 			                                    bisection_offset,
-			                                    minimum_node_distance, max_lat);
+			                                    minimum_node_distance,
+			                                    max_lat));
+			glines->paths.swap(grid.paths);
+			glines->cuts.swap(grid.cuts);
 
 		} catch (...) {
 			/* Clean up: */
@@ -299,6 +311,9 @@ int compute_grid_lines(const char* proj_str, double xmin, double xmax,
 			npath += path.size();
 		}
 		*Npath = npath;
+
+		/* Number of cuts: */
+		*Ncut = glines->cuts.size();
 
 		/* Success. */
 		return 0;
@@ -317,7 +332,8 @@ constexpr uint8_t MPL_LINETO = 2;
  * Second part of a two-part function. Call exactly one time after
  * compute_grid_lines has successfully completed.
  */
-int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes)
+int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes,
+                    double* cut_vertices, uint8_t* cut_axes, double* cut_coords)
 {
 	/* Cast the struct: */
 	if (struct_ptr == nullptr)
@@ -343,6 +359,22 @@ int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes)
 			++codes;
 			++vertices;
 		}
+	}
+
+	/* Fill the cut points: */
+	for (const cut_t& cut : glines.cuts){
+		*cut_vertices = cut.point.x;
+		++cut_vertices;
+		*cut_vertices = cut.point.y;
+		++cut_vertices;
+	}
+	for (const cut_t& cut : glines.cuts){
+		*cut_axes = static_cast<uint8_t>(cut.tick_type);
+		++cut_axes;
+	}
+	for (const cut_t& cut : glines.cuts){
+		*cut_coords = cut.coordinate;
+		++cut_coords;
 	}
 
 	/* Success. */

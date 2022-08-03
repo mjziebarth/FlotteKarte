@@ -40,6 +40,7 @@ class Map:
         if proj is None:
             proj = Proj(proj_str)
         self.proj = proj
+        self._grid_cuts = []
 
         # Some initialization:
         ax.set_aspect('equal')
@@ -72,7 +73,7 @@ class Map:
                            tick_spacing=tick_spacing, tick_bot=tick_bot,
                            tick_top=tick_top, tick_left=tick_left,
                            tick_right=tick_right, proj=self.proj,
-                           fontsize=fontsize)
+                           fontsize=fontsize, grid_cuts=self._grid_cuts)
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
                   bisection_offset='auto', minimum_node_distance='auto',
@@ -80,10 +81,15 @@ class Map:
         """
         Add a geographic coordinte grid to the plot.
         """
-        plot_grid(self.ax, self.xlim, self.ylim, self.proj_str,
-                  tick_spacing_degree, bisection_offset=bisection_offset,
-                  minimum_node_distance=minimum_node_distance,
-                  max_lat=max_lat, linewidth=linewidth, **kwargs)
+        cuts, cut_tick_type, cut_coordinates = \
+           plot_grid(self.ax, self.xlim, self.ylim, self.proj_str,
+                     tick_spacing_degree, bisection_offset=bisection_offset,
+                     minimum_node_distance=minimum_node_distance,
+                     max_lat=max_lat, linewidth=linewidth, **kwargs)
+        self._grid_cuts = [(float(x), float(y), "lon" if tt == 0 else "lat",
+                            float(coordinate))
+                           for (x,y), tt, coordinate in zip(cuts, cut_tick_type,
+                                                            cut_coordinates)]
 
     def add_data(self, dataset, **kwargs):
         """

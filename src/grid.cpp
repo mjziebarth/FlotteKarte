@@ -32,6 +32,7 @@ using flottekarte::crop_and_refine;
 using flottekarte::path_xy_t;
 using flottekarte::path_geo_t;
 using flottekarte::refined_path_t;
+using flottekarte::geo_grid_t;
 
 
 static long lon_ticks(int tick_spacing_degree)
@@ -54,7 +55,7 @@ static long lat_ticks(int tick_spacing_degree)
 
 
 
-std::vector<path_xy_t>
+geo_grid_t
 flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
                     double xmax, double ymin, double ymax,
                     int tick_spacing_degree, double bisection_offset,
@@ -94,7 +95,7 @@ flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
 	                          : 1.0 / tick_spacing_degree;
 
 
-	std::vector<path_xy_t> paths;
+	geo_grid_t grid;
 	/* Construct the meridian lines: */
 	const long nlat0 = std::ceil(max_lat*min_ticks_per_degree);
 	const double dlat0 = max_lat / nlat0;
@@ -115,8 +116,14 @@ flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
 		                           bisection_offset, minimum_node_distance));
 
 		/* Add the new segments: */
-		paths.insert(paths.cend(), refined.segments.cbegin(),
-		             refined.segments.cend());
+		grid.paths.insert(grid.paths.cend(), refined.segments.cbegin(),
+		                  refined.segments.cend());
+
+		/* Add the cuts: */
+		for (const xy_t& cut : refined.cuts){
+			grid.cuts.push_back(cut_t({.point=cut, .tick_type=TICK_LON,
+			                           .coordinate=loni}));
+		}
 	}
 
 	/* Construct the lines of constant latitude: */
@@ -140,10 +147,16 @@ flottekarte::generate_grid_lines(const ProjWrapper& proj, double xmin,
 		                           bisection_offset, minimum_node_distance));
 
 		/* Add the new segments: */
-		paths.insert(paths.cend(), refined.segments.cbegin(),
-		             refined.segments.cend());
+		grid.paths.insert(grid.paths.cend(), refined.segments.cbegin(),
+		                  refined.segments.cend());
+
+		/* Add the cuts: */
+		for (const xy_t& cut : refined.cuts){
+			grid.cuts.push_back(cut_t({.point=cut, .tick_type=TICK_LAT,
+			                           .coordinate=lati}));
+		}
 	}
 
 	/* End: */
-	return paths;
+	return grid;
 }

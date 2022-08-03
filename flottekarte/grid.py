@@ -39,9 +39,9 @@ def plot_grid(ax, xlim: Tuple[float,float], ylim: Tuple[float,float],
         minimum_node_distance = 1e-3 * diagonal
 
     # Use backend to generate the path:
-    vertices, codes = grid_path(proj_str, *xlim, *ylim, tick_spacing_degree,
-                                bisection_offset, minimum_node_distance,
-                                max_lat)
+    vertices, codes, cuts, cut_tick_type, cut_coordinates \
+       = grid_path(proj_str, *xlim, *ylim, tick_spacing_degree,
+                   bisection_offset, minimum_node_distance, max_lat)
 
     # Matplotlib path and PathPatch:
     path = Path(vertices, codes=codes)
@@ -49,3 +49,5 @@ def plot_grid(ax, xlim: Tuple[float,float], ylim: Tuple[float,float],
     if "facecolor" not in kwargs:
         kwargs["facecolor"] = 'none'
     ax.add_patch(PathPatch(path, **kwargs))
+
+    return cuts, cut_tick_type, cut_coordinates

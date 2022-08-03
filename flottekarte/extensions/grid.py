@@ -27,7 +27,7 @@ from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
 def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
               tick_spacing_degree: int, bisection_offset: float,
               minimum_node_distance: float,
-              max_lat: float) -> Tuple[np.ndarray,np.ndarray]:
+              max_lat: float) -> Tuple[np.ndarray,np.ndarray,np.ndarray]:
     """
     Computes a Matplotlib path comprising the lines of a geograpnic coordinate
     grid.
@@ -68,9 +68,8 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
 
     # Create the output buffers and call C code:
     struct_ptr = c_void_p(0)
-    print("struct_ptr:",struct_ptr)
-    print("byref:     ",byref(struct_ptr))
     Npath = c_ulong(0)
+    Ncut = c_ulong(0)
     proj_str = proj_str.encode("ascii")
 
     res = _cdll.compute_grid_lines(c_char_p(proj_str), c_double(xmin),
@@ -79,7 +78,8 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
                                    c_double(bisection_offset),
                                    c_double(minimum_node_distance),
                                    c_double(max_lat),
-                                   byref(struct_ptr), byref(Npath));
+                                   byref(struct_ptr), byref(Npath),
+                                   byref(Ncut));
 
     if res != 0:
         # Clean up:
@@ -89,16 +89,23 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
         raise RuntimeError("compute_grid_lines backend failed. Error code "
                            + str(res))
 
-    print("Npath:",Npath)
-
     # Create the path array:
     vertices = np.zeros((Npath.value, 2))
     codes = np.zeros(Npath.value, dtype=np.uint8)
 
+    # Cut array:
+    cuts = np.zeros((Ncut.value, 2))
+    cut_tick_type = np.zeros(Ncut.value, dtype=np.uint8)
+    cut_coordinates = np.zeros(Ncut.value)
+
     # Fill the path to the numpy arrays:
     res = _cdll.save_grid_lines(struct_ptr,
                                 vertices.ctypes.data_as(POINTER(c_double)),
-                                codes.ctypes.data_as(POINTER(c_ubyte)))
+                                codes.ctypes.data_as(POINTER(c_ubyte)),
+                                cuts.ctypes.data_as(POINTER(c_double)),
+                                cut_tick_type.ctypes.data_as(POINTER(c_double)),
+                                cut_coordinates.ctypes
+                                               .data_as(POINTER(c_double)))
 
     # Clean the C++ structures:
     _cdll.clean_grid_lines_struct(struct_ptr)
@@ -107,4 +114,4 @@ def grid_path(proj_str: str, xmin: float, xmax: float, ymin: float, ymax: float,
         raise RuntimeError("save_grid_lines backend failed. Error code "
                            + str(res))
 
-    return vertices, codes
+    return vertices, codes, cuts, cut_tick_type, cut_coordinates

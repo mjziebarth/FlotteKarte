@@ -61,9 +61,9 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
  * This is the first of a three-part function. Computes grid lines according to
  * settings (projection, x- & ylim, tick spacing, bisection offset,
  * minimum distance between path-adjacent nodes) and returns 1) the length
- * of the resulting path (Npath) and 2) a pointer to the structure holding
- * all the required information (struct_ptr).
- * It should to be followed, after allocating two suitable numpy arrays,
+ * of the resulting path (Npath), 2) a pointer to the structure holding
+ * all the required information (struct_ptr), and 3) the number of cuts (Ncut).
+ * It should to be followed, after allocating three suitable numpy arrays,
  * by a call to save_grid_lines, which transfers the path contained in
  * struct_ptr and frees the allocated space.
  * It then has to be followed by a call to clean_grid_lines_struct. If this
@@ -73,12 +73,15 @@ int compute_axes_ticks(const char* proj_str, double xmin, double xmax,
 int compute_grid_lines(const char* proj_str, double xmin, double xmax,
                        double ymin, double ymax, int tick_spacing_degree,
                        double bisection_offset, double minimum_node_distance,
-                       double max_lat, void** struct_ptr, size_t* Npath);
+                       double max_lat, void** struct_ptr, size_t* Npath,
+                       size_t* Ncut);
 
 /*
  * Second part of a three-part function.
  */
-int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes);
+int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes,
+                    double* cut_vertices, uint8_t* cut_tick_type,
+                    double* cut_coords);
 
 /*
  * Final part of a three-part function. Call exactly one time after
