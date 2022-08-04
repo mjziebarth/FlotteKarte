@@ -8,7 +8,7 @@ dependencies = [dependency('proj'),dependency('openmp'),libprojwrap_dep]
 sources = ['src/pyapi.cpp', 'src/invert.cpp',
            'src/types.cpp', 'src/linalg.cpp', 'src/griddedinverter.cpp',
            'src/gradient.cpp', 'src/tickfinder.cpp', 'src/grid.cpp',
-           'src/paths.cpp', 'src/boundary.cpp']
+           'src/paths.cpp', 'src/boundary.cpp', 'src/augmentedproj.cpp']
 library('inverse',
         sources : sources,
         include_directories : include,
