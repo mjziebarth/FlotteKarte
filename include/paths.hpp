@@ -26,6 +26,9 @@
 
 namespace flottekarte {
 
+xy_t boundary_intersection(const xy_t& out, const xy_t& in, double xmin,
+                           double xmax, double ymin, double ymax);
+
 struct refined_path_t {
 	std::vector<path_xy_t> segments;
 	std::vector<xy_t> cuts;

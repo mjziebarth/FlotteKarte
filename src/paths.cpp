@@ -42,8 +42,9 @@ using flottekarte::crop_and_refine;
 
 
 
-static xy_t boundary_intersection(const xy_t& out, const xy_t& in, double xmin,
-                                  double xmax, double ymin, double ymax)
+xy_t flottekarte::boundary_intersection(const xy_t& out, const xy_t& in,
+                                        double xmin, double xmax, double ymin,
+                                        double ymax)
 {
 	/* These functions interpolates the coordinates of outside and inside
 	 * points once the crossed boundary has been identified and the distances
