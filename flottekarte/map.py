@@ -73,7 +73,8 @@ class Map:
                   linewidth: float = 0.8, fontsize: float = 8.0,
                   rotate_labels: bool = True, ticks_bot: bool = True,
                   ticks_top: bool = True, ticks_left: bool = True,
-                  ticks_right: bool = True):
+                  ticks_right: bool = True,
+                  remove_overlaps: bool = True):
         """
         Add axes and ticks to the plot.
         """
@@ -84,7 +85,8 @@ class Map:
                            grid_cuts=self._grid_cuts,
                            rotate_labels=rotate_labels, ticks_bot=ticks_bot,
                            ticks_top=ticks_top, ticks_left=ticks_left,
-                           ticks_right=ticks_right)
+                           ticks_right=ticks_right,
+                           remove_overlaps=remove_overlaps)
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
                   bisection_offset='auto', minimum_node_distance='auto',
