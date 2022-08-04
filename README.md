@@ -82,6 +82,22 @@ This software is licensed under the European Public License (EUPL) version 1.2 o
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [0.2.0] - 2022-08-04
+#### Added
+- Added automatic extent computation for some global projections.
+- Coordinate labels can be rotated with axis orientation.
+- Add AugmentedProj class that automatically falls back to numerical inversion
+  if a projection does not come with a defined inversion routine.
+
+#### Changed
+- Simplified detection of discontinuities in path processing.
+- Reworked the map boundary. It can now follow non-rectangular map shapes
+  as defined by violated bijectivity of the map projection.
+- Reworked the axes labelling mechanism. Axes are removed if they overlapped,
+  based on a weighting criterion, and the labels now follow the (potentially
+  non-rectangular) map boundary polygon.
+- Fix various bugs.
+
 ### [0.1.0] - 2022-06-30
 #### Added
  - First version
