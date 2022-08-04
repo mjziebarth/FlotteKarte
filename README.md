@@ -132,7 +132,7 @@ fig.savefig('iceland-example-map.png')
 ```
 The map should look like the following:
 
-[Iceland map](docs/images/iceland-example-map.png)
+![Iceland map](docs/images/iceland-example-map.png)
 
 
 ## License
