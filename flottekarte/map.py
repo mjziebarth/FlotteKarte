@@ -27,6 +27,7 @@ from .axes import generate_axes_grid
 from .grid import plot_grid
 from .data import GeoJSON
 from .extensions.boundary import map_boundary
+from .extent import automatic_map_extents
 
 
 class Map:
@@ -39,10 +40,19 @@ class Map:
                  atol='auto'):
         self.proj_str = proj_str
         self.ax = ax
-        self.xlim = xlim
-        self.ylim = ylim
         if proj is None:
             proj = Proj(proj_str)
+
+        # Map limits, potentially automatically generated:
+        if xlim is None or ylim is None:
+            xmin_a,xmax_a,ymin_a,ymax_a = automatic_map_extents(proj_str, proj)
+            if xlim is None:
+                xlim = xmin_a, xmax_a
+            if ylim is None:
+                ylim = ymin_a, ymax_a
+        self.xlim = xlim
+        self.ylim = ylim
+
         self.proj = proj
         self._grid_cuts = []
         self._bisection_offset = bisection_offset
