@@ -21,14 +21,17 @@
  */
 
 #include <../include/types.hpp>
+#include <../include/augmentedproj.hpp>
 
 #ifndef FLOTTEKARTE_BOUNDARY_HPP
 #define FLOTTEKARTE_BOUNDARY_HPP
 
 namespace flottekarte {
 
-void bounding_polygon(const ProjWrapper& proj, double xmin, double xmax,
-                      double ymin, double ymax, path_xy_t& poly);
+void bounding_polygon(const AugmentedProj&  proj, double xmin, double xmax,
+                      double ymin, double ymax, double atol,
+                      double bisection_offset, double minimum_node_distance,
+                      path_xy_t& poly);
 
 }
 

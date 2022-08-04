@@ -19,14 +19,18 @@
 # limitations under the Licence.
 
 import numpy as np
+from math import sqrt
 from .cdll import _cdll
-from typing import Tuple
+from typing import Tuple, Union
 from ctypes import c_double, c_int, POINTER, c_char_p, c_ulong, c_void_p, \
                    byref, c_ubyte
 
 
 def map_boundary(proj_str: str, xmin: float, xmax: float, ymin: float,
-                 ymax: float) -> Tuple[np.ndarray,np.ndarray]:
+                 ymax: float, atol: Union[float,str],
+                 bisection_offset: Union[float,str],
+                 minimum_node_distance: Union[float,str]) \
+    -> Tuple[np.ndarray,np.ndarray]:
     """
     Boundary of a map from a projection and a bounding box.
 
@@ -44,6 +48,20 @@ def map_boundary(proj_str: str, xmin: float, xmax: float, ymin: float,
     if ymin >= ymax:
         raise RuntimeError("`ymin` has to be smaller than `ymax`.")
 
+    diagonal = sqrt((xmax - xmin)**2 + (ymax - ymin)**2)
+    if bisection_offset == 'auto':
+        bisection_offset = 1e-3 * diagonal
+    else:
+        bisection_offset = float(bisection_offset)
+    if minimum_node_distance == 'auto':
+        minimum_node_distance = 1e-3 * diagonal
+    else:
+        minimum_node_distance = float(minimum_node_distance)
+    if atol == 'auto':
+        atol = 1e-4 * diagonal
+    else:
+        atol = float(atol)
+
     # Determine the projection
     proj_split = [p.split("=") for p in proj_str.split()]
     strip_plus = lambda s : s[1:] if len(s) > 0 and s[0] == '+' else s
@@ -56,16 +74,13 @@ def map_boundary(proj_str: str, xmin: float, xmax: float, ymin: float,
     Nvert = c_ulong(0)
     proj_str = proj_str.encode("ascii")
 
-#    print("compute bounding polygon.")
     res = _cdll.compute_bounding_polygon(c_char_p(proj_str), c_double(xmin),
                                    c_double(xmax), c_double(ymin),
-                                   c_double(ymax), byref(struct_ptr),
-                                   byref(Nvert));
+                                   c_double(ymax), c_double(atol),
+                                   c_double(bisection_offset),
+                                   c_double(minimum_node_distance),
+                                   byref(struct_ptr), byref(Nvert));
 
-#    print("   done!")
-#    print("save bounding polygon.")
-#    from time import sleep
-#    sleep(1.0)
 
     if res != 0:
         # Clean up:
@@ -85,18 +100,11 @@ def map_boundary(proj_str: str, xmin: float, xmax: float, ymin: float,
                                 angles.ctypes.data_as(POINTER(c_double))
     )
 
-#    print("   done!")
-#    print("cleanup bounding polygon.")
-#    sleep(1.0)
-
     # Clean the C++ structures:
     _cdll.clean_bounding_polygon_struct(struct_ptr)
 
     if res != 0:
         raise RuntimeError("save_bounding_polygon backend failed. Error code "
                            + str(res))
-
-#    print("   done!")
-#    sleep(1.0)
 
     return vertices, angles

@@ -422,7 +422,9 @@ int clean_grid_lines_struct(void* struct_ptr)
  ******************************************************************************/
 
 int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
-                             double ymin, double ymax, void** struct_ptr,
+                             double ymin, double ymax, double atol,
+                             double bisection_offset,
+                             double minimum_node_distance, void** struct_ptr,
                              size_t* Nvert)
 {
 	/* Empty initialization: */
@@ -439,7 +441,7 @@ int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
 
 	try {
 		/* Create the projection wrapper: */
-		ProjWrapper proj(proj_str);
+		AugmentedProj proj(proj_str);
 
 		/* Generate the bounding polygon structure: */
 		path_xy_t* poly = new path_xy_t();
@@ -449,7 +451,8 @@ int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
 
 		/* Compute the polygon: */
 		try {
-			bounding_polygon(proj, xmin, xmax, ymin, ymax, *poly);
+			bounding_polygon(proj, xmin, xmax, ymin, ymax, atol,
+			                 bisection_offset, minimum_node_distance, *poly);
 		} catch (...) {
 			/* Clean up: */
 			delete poly;

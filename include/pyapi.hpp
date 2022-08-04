@@ -93,7 +93,9 @@ int clean_grid_lines_struct(void* struct_ptr);
  * Computes a bounding polygon.
  */
 int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
-                             double ymin, double ymax, void** struct_ptr,
+                             double ymin, double ymax, double atol,
+                             double bisection_offset,
+                             double minimum_node_distance, void** struct_ptr,
                              size_t* Nvert);
 
 /*

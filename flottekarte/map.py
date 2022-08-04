@@ -34,7 +34,9 @@ class Map:
     A minimalistic map plotting tool using PROJ, pyproj,
     and Matplotlib.
     """
-    def __init__(self, proj_str, ax, xlim, ylim, proj=None):
+    def __init__(self, proj_str, ax, xlim=None, ylim=None, proj=None,
+                 bisection_offset='auto', minimum_node_distance='auto',
+                 atol='auto'):
         self.proj_str = proj_str
         self.ax = ax
         self.xlim = xlim
@@ -43,10 +45,14 @@ class Map:
             proj = Proj(proj_str)
         self.proj = proj
         self._grid_cuts = []
+        self._bisection_offset = bisection_offset
+        self._minimum_node_distance = minimum_node_distance
+        self._atol = atol
 
         # Compute the map boundary:
         self.boundary_vertices, self.boundary_normal_angles \
-            = map_boundary(proj_str, *xlim, *ylim)
+            = map_boundary(proj_str, *xlim, *ylim, atol, bisection_offset,
+                           minimum_node_distance)
 
         # Some initialization:
         ax.set_aspect('equal')
@@ -89,11 +95,16 @@ class Map:
                            remove_overlaps=remove_overlaps)
 
     def plot_grid(self, tick_spacing_degree: int = 10, max_lat: float = 90.0,
-                  bisection_offset='auto', minimum_node_distance='auto',
+                  bisection_offset=None, minimum_node_distance=None,
                   linewidth=0.8, **kwargs):
         """
         Add a geographic coordinte grid to the plot.
         """
+        if bisection_offset is None:
+            bisection_offset = self._bisection_offset
+        if minimum_node_distance is None:
+            minimum_node_distance = self._minimum_node_distance
+
         cuts, cut_tick_type, cut_coordinates = \
            plot_grid(self.ax, self.xlim, self.ylim, self.proj_str,
                      tick_spacing_degree, bisection_offset=bisection_offset,
