@@ -44,6 +44,7 @@ using flottekarte::ProjError;
 using flottekarte::geo_grid_t;
 using flottekarte::ProjWrapper;
 using flottekarte::geo_degrees_t;
+using flottekarte::AugmentedProj;
 using flottekarte::segment_tick_t;
 using flottekarte::GriddedInverter;
 using flottekarte::generate_grid_lines;
@@ -189,8 +190,7 @@ int compute_axes_ticks(const char* proj_str,
 	std::cout << "initializing proj wrapper\n" << std::flush;
 	#endif
 	try {
-		ProjWrapper proj(proj_str);
-		GriddedInverter ginv(proj, 100, 50);
+		AugmentedProj proj(proj_str);
 
 		/* Parallel projection: */
 		#ifdef DEBUG
@@ -210,10 +210,9 @@ int compute_axes_ticks(const char* proj_str,
 
 		const size_t Nmax = static_cast<size_t>(max_ticks);
 		std::array<std::vector<segment_tick_t>,2> ticks;
-		#pragma omp parallel for schedule(static,1)
 		for (int i=0; i<2; ++i){
 			ticks[i]
-			   = compute_ticks(proj, ginv, tick[i], path, tick_spacing_degree);
+			   = compute_ticks(proj, tick[i], path, tick_spacing_degree);
 		}
 		size_t n=0;
 		for (int i=0; i<2; ++i){

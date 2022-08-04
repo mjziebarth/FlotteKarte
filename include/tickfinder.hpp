@@ -21,7 +21,7 @@
  */
 
 #include <../include/types.hpp>
-#include <../include/griddedinverter.hpp>
+#include <../include/augmentedproj.hpp>
 #include <vector>
 
 #ifndef FLOTTEKARTE_TICKFINDER_HPP
@@ -39,7 +39,7 @@ struct segment_tick_t {
 };
 
 std::vector<segment_tick_t>
-compute_ticks(const ProjWrapper&, const GriddedInverter&, tick_t,
+compute_ticks(const AugmentedProj&, tick_t,
               const path_xy_t&, double tick_spacing);
 
 }

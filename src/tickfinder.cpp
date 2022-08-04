@@ -20,6 +20,7 @@
  */
 #include <../include/tickfinder.hpp>
 #include <../include/invert.hpp>
+#include <../include/gradient.hpp>
 
 #include <functional>
 #include <set>
@@ -38,6 +39,8 @@ using flottekarte::geo_degrees_t;
 using flottekarte::segment_tick_t;
 using flottekarte::ProjWrapper;
 using flottekarte::GriddedInverter;
+using flottekarte::Gradient;
+using flottekarte::AugmentedProj;
 
 #include <iostream>
 
@@ -110,27 +113,22 @@ static inline xy_t gen_xy(double z, double x0, double y0, double x1, double y1)
 	return xy_t(z * x0 + (1.0 - z) * x1,   z * y0 + (1.0 - z) * y1);
 }
 
+static inline double cross_product_norm(double dx0, double dy0, double dx1,
+                                        double dy1)
+{
+	/* Compute the norm of the cross product of two planar vectors. */
+	return std::abs(dx0 * dy1 - dy0 * dx1);
+}
+
 
 std::vector<segment_tick_t>
-flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
+flottekarte::compute_ticks(const AugmentedProj& proj,
                            tick_t tick, const path_xy_t& path,
                            double tick_spacing)
 {
 	/* No ticks: */
 	if (tick == TICK_NONE || path.size() < 2)
 		return std::vector<segment_tick_t>();
-
-	auto invert = [&](const xy_t& xy) -> geo_t {
-		geo_t lola;
-		try {
-			lola = proj.inverse(xy);
-		} catch (const ProjError& e) {
-			geo_t lola0(ginv(xy));
-			lola = gradient_descent_inverse_project(proj, xy, lola0.lambda,
-			                                        lola0.phi);
-		}
-		return lola;
-	};
 
 	/* Compute coordinate extremes: */
 	double xmin = std::numeric_limits<double>::infinity();
@@ -144,11 +142,13 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 		ymax = std::max(ymax, xy.y);
 	}
 
-	std::vector<segment_tick_t> ticks;
+	std::vector<std::vector<segment_tick_t>> ticks(path.size());
+	#pragma omp parallel for
 	for (size_t i=0; i < path.size(); ++i){
 		const size_t j = (i+1) % path.size();
 		const double x0 = path[i].x, y0 = path[i].y,
 		             x1 = path[j].x, y1 = path[j].y;
+		const double segment_length = path[i].distance(path[j]);
 
 		/* The function referring a point along the line segment to
 		 * a coordinate: */
@@ -157,7 +157,7 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 			xy_t xy(gen_xy(z,x0,y0,x1,y1));
 
 			/* Invert: */
-			geo_t lola(invert(xy));
+			geo_t lola(proj.inverse(xy));
 
 			/* Return the relevant coordinate scaled to spacing: */
 			if (tick == TICK_LON){
@@ -243,7 +243,7 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 				 * Check all existing links: */
 				bool unique = true;
 				for (double x : find->second){
-					if (std::abs(x - it->x) < min_spacing){
+					if (std::abs(x - it->x) * segment_length < min_spacing){
 						/* Another very close tick exists. Not unique tick,
 						 * keep the other! */
 						unique = false;
@@ -272,7 +272,7 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 		//res.reserve(int_levels.size());
 		for (auto il : int_levels){
 			xy_t xy(gen_xy(il.x, x0, y0, x1, y1));
-			geo_t lola(invert(xy));
+			geo_t lola(proj.inverse(xy));
 
 			/* Sanity check: Make sure that a full projection-inversion loop
 			 * can be performed. */
@@ -280,15 +280,46 @@ flottekarte::compute_ticks(const ProjWrapper& proj, const GriddedInverter& ginv,
 			if (proj.project(lola).distance(xy) > 1e-5*xy_norm)
 				continue;
 
-			if (tick == TICK_LON)
-				ticks.emplace_back(i, il.level * tick_spacing,
-				                   rad2deg(lola.phi));
-			else
-				ticks.emplace_back(i, rad2deg(lola.lambda),
-				                   il.level * tick_spacing);
+			/* Make sure that the tick is not too flat relative to
+			 * the segment: */
+			constexpr double sin_angle_min = std::sin(10.0 * PI/180.0);
+			Gradient<FORWARD_5POINT> gr(proj.wrapper(), lola);
 
+			const double dx0 = (x1 - x0) / segment_length;
+			const double dy0 = (y1 - y0) / segment_length;
+			if (tick == TICK_LON){
+				const double norm1 = std::sqrt(  gr.gx_north() * gr.gx_north()
+				                               + gr.gy_north() * gr.gy_north());
+				const double dx1 = gr.gx_north() / norm1;
+				const double dy1 = gr.gy_north() / norm1;
+				const double sin_angle \
+				   = cross_product_norm(dx0, dy0, dx1, dy1);
+				if (sin_angle >= sin_angle_min)
+					ticks[i].emplace_back(i, il.level * tick_spacing,
+					                      rad2deg(lola.phi));
+			} else {
+				const double norm1 = std::sqrt(  gr.gx_east() * gr.gx_east()
+				                               + gr.gy_east() * gr.gy_east());
+				const double dx1 = gr.gx_east() / norm1;
+				const double dy1 = gr.gy_east() / norm1;
+				const double sin_angle \
+				   = cross_product_norm(dx0, dy0, dx1, dy1);
+				if (sin_angle >= sin_angle_min)
+					ticks[i].emplace_back(i, rad2deg(lola.lambda),
+					                      il.level * tick_spacing);
+			}
 		}
 	}
 
-	return ticks;
+	size_t Nticks = 0;
+	for (auto& vec : ticks)
+		Nticks += vec.size();
+	std::vector<segment_tick_t> ticks_serial;
+	ticks_serial.reserve(Nticks);
+	for (auto& vec : ticks){
+		ticks_serial.insert(ticks_serial.cend(), vec.cbegin(), vec.cend());
+		vec.clear();
+	}
+
+	return ticks_serial;
 }
