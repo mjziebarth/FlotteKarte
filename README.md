@@ -130,6 +130,9 @@ ax.scatter(xmaxima, ymaxima, marker='.', color='k',
 mp.plot_axes(2)
 fig.savefig('iceland-example-map.png')
 ```
+The map should look like the following:
+
+[Iceland map](docs/images/iceland-example-map.png)
 
 
 ## License
