@@ -75,6 +75,63 @@ mp.plot_grid(5)
 mp.plot_axes(5)
 ```
 
+### Example Map for Iceland
+This code uses the file `testing/data/natura-learth/iceland.geojson` to show
+the coast line of iceland and compute, in a stereographic projection, the
+distance to shoreline:
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from flottekarte import Map, GeoJSON
+from pyproj import Proj
+from scipy.spatial import KDTree
+
+# The projection we will be working in:
+proj_str = '+proj=stere +lon_0=-18 +lat_0=64.5'
+proj = Proj(proj_str)
+
+# Load the shoreline (this assumes the GeoJSON is
+# in the same folder):
+iceland = GeoJSON('iceland.geojson', proj_str)
+xlim, ylim = iceland.get_extent()
+
+# Extract the vertices from the PatchCollection:
+iceland_xy = [patch.vertices for patch in
+              iceland.get_polygon_patches()
+                     .get_paths()][0]
+
+# Interpolate the distance to the shoreline
+# on a grid:
+xg, yg = np.meshgrid(np.linspace(*xlim, 120),
+                     np.linspace(*ylim, 80))
+zg = np.empty(xg.shape)
+tree = KDTree(iceland_xy)
+zg.flat[...] = tree.query(np.stack((xg.flat, yg.flat),
+                                   axis=1))[0]
+
+# Compute the locations of local distance maxima:
+maxima = np.zeros(zg.shape, dtype=bool)
+maxima[1:-1,1:-1] =  (zg[:-2,1:-1] < zg[1:-1,1:-1]) \
+                   & (zg[2:,1:-1] < zg[1:-1,1:-1]) \
+                   & (zg[1:-1,:-2] < zg[1:-1,1:-1]) \
+                   & (zg[1:-1,2:] < zg[1:-1,1:-1])
+xmaxima = xg[maxima]
+ymaxima = yg[maxima]
+
+# Finally, after processing create the map:
+fig = plt.figure(dpi=100, figsize=(12.80, 6.40))
+ax = fig.add_subplot(111)
+mp = Map(proj_str, ax, xlim, ylim, proj=proj)
+mp.add_data(iceland, color='navajowhite')
+ax.contour(xg, yg, zg, colors='k',
+           linewidths=0.8)
+ax.scatter(xmaxima, ymaxima, marker='.', color='k',
+           s=5)
+mp.plot_axes(2)
+fig.savefig('iceland-example-map.png')
+```
+
+
 ## License
 This software is licensed under the European Public License (EUPL) version 1.2 or later.
 
