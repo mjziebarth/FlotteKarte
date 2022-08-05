@@ -19,6 +19,7 @@
 
 import json
 import numpy as np
+from typing import Union, Optional, Tuple
 from pyproj import Proj
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
@@ -39,8 +40,31 @@ def assert_geojson_sanity(geojson_dict):
 class GeoJSON:
     """
     Loads data from a GeoJSON.
+
+    Parameters
+    ----------
+    fname : str
+       Path to the GeoJSON file. Alternatively
+       anything that can be accepted by :func:`open`.
+    proj : str or pyproj.Proj
+       Projection to evaluate the geometries in.
+    xlim : tuple[float,float], optional
+       Selection *x* extent in projected coordinates.
+       Given as :math:`(x_\\mathrm{min},x_\\mathrm{max})`.
+    ylim : tuple[float,float], optional
+       Selection *y* extent in projected coordinates.
+       Given as :math:`(y_\\mathrm{min},y_\\mathrm{max})`.
+
+
+    Notes
+    -----
+    If no extents are given, all geometries are loaded.
+    So far, only polygon and multipolygon geometries are
+    loaded.
     """
-    def __init__(self, fname, proj, xlim=None, ylim=None):
+    def __init__(self, fname: str, proj: Union[str,Proj],
+                 xlim: Optional[Tuple[float,float]] = None,
+                 ylim: Optional[Tuple[float,float]] = None):
         # Initialize the projection:
         if not isinstance(proj,Proj):
             proj = Proj(proj)
@@ -139,6 +163,16 @@ class GeoJSON:
     def get_polygon_patches(self, **kwargs):
         """
         Get matplotlib patches of the polygons and multipolygons.
+
+        Parameters
+        ----------
+        kwargs : optional
+           Parameters to pass to the patch collection.
+
+        Returns
+        -------
+        :class:`matplotlib.collections.PatchCollection`
+           Patches for all polygons and multipolygons.
         """
         poly_patches = []
         for poly in self.polygons:
@@ -153,6 +187,13 @@ class GeoJSON:
     def get_extent(self):
         """
         Get x and y limits.
+
+        Returns
+        -------
+        xlim : tuple[float,float]
+           *x* extents :math:`(x_\\mathrm{min},x_\\mathrm{max})`
+        ylim : tuple[float,float]
+           *y* extents :math:`(y_\\mathrm{min},y_\\mathrm{max})`
         """
         xmin = np.inf
         xmax = -np.inf

@@ -143,9 +143,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Unreleased
+#### Added
+- Finalized first documentation.
+
 #### Changed
 - Rename compiled extension from `libinverse` to `libflottekarte`
 - More informative error messages when importing `libflottekarte` fails.
+- More typing information.
 
 ### [0.2.0] - 2022-08-04
 #### Added

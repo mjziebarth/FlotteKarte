@@ -16,6 +16,7 @@ the hood.
 
    usage/installation
    usage/quickstart
+   api/classes
 
 
 

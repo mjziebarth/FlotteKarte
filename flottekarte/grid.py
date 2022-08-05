@@ -18,7 +18,7 @@
 # limitations under the Licence.
 
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union, Literal
 from math import sqrt
 from .extensions.grid import grid_path
 from matplotlib.path import Path
@@ -27,7 +27,8 @@ from matplotlib.patches import PathPatch
 
 def plot_grid(ax, xlim: Tuple[float,float], ylim: Tuple[float,float],
               proj_str: str, tick_spacing_degree: int,
-              bisection_offset='auto', minimum_node_distance='auto',
+              bisection_offset: Union[Literal['auto'],float] = 'auto',
+              minimum_node_distance: Union[Literal['auto'],float] = 'auto',
               max_lat=90., linewidth=0.8, **kwargs):
     """
     Plots a geographic coordinate grid.

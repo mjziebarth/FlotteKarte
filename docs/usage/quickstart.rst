@@ -1,7 +1,7 @@
 Quickstart
 ==========
 Suppose you have a PROJ string that marks a projection (let this be
-`proj=eqc` in this example -- not good, but illustrative) and suppose that you
+``proj=eqc`` in this example -- not good, but illustrative) and suppose that you
 have a set of longitude and latitude coordinates that you want to plot.
 For the sake of this quick introduction, create some random data:
 
