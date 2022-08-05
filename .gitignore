@@ -2,6 +2,6 @@ builddir/*
 build/*
 flottekarte/extensions/libflottekarte.so
 subprojects/libprojwrap/
-flottekarte/extensions/src/*
-flottekarte/extensions/include/*
+flottekarte/extensions/src
+flottekarte/extensions/include
 flottekarte/extensions/meson.build
