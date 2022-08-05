@@ -22,4 +22,5 @@ build-backend = "setuptools.build_meta"
 packages = ["flottekarte","flottekarte.extensions","flottekarte.data"]
 
 [tool.setuptools.package-data]
-flottekarte = ["extensions/libflottekarte.so"]
+flottekarte = ["extensions/libflottekarte.so", "extensions/meson.build",
+               "extensions/include/*", "extensions/src/*"]
