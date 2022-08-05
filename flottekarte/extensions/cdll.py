@@ -22,5 +22,12 @@ import numpy as np
 from ctypes import CDLL
 
 # Load the shared library:
-_cdll_path = pathlib.Path(__file__).parent / 'libinverse.so'
-_cdll = CDLL(_cdll_path)
+_cdll_path = pathlib.Path(__file__).parent / 'libflottekarte.so'
+try:
+    _cdll = CDLL(_cdll_path)
+except OSError:
+    raise ImportError("Could not load the compiled backend "
+                      "'libflottekarte.so'. Most likely this means that your "
+                      "system library has been updated and you need to "
+                      "recompile the FlotteKarte backend. You can do so by "
+                      "reinstalling the package.")
