@@ -22,4 +22,4 @@ build-backend = "setuptools.build_meta"
 packages = ["flottekarte","flottekarte.extensions","flottekarte.data"]
 
 [tool.setuptools.package-data]
-flottekarte = ["extensions/libinverse.so"]
+flottekarte = ["extensions/libflottekarte.so"]

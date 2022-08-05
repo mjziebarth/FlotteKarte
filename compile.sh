@@ -10,7 +10,7 @@ fi
 meson compile -C builddir
 
 # Link to the python module:
-if [ ! -f flottekarte/extensions/libinverse.so ]; then
+if [ ! -f flottekarte/extensions/libflottekarte.so ]; then
     cd flottekarte/extensions
-    ln -s ../../builddir/libinverse.so
+    ln -s ../../builddir/libflottekarte.so
 fi
