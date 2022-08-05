@@ -142,6 +142,11 @@ This software is licensed under the European Public License (EUPL) version 1.2 o
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Unreleased
+#### Changed
+- Rename compiled extension from `libinverse` to `libflottekarte`
+- More informative error messages when importing `libflottekarte` fails.
+
 ### [0.2.0] - 2022-08-04
 #### Added
 - Added automatic extent computation for some global projections.
