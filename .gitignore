@@ -1,3 +1,6 @@
 builddir/*
-projplot/extensions/libinverse.so
+build/*
+flottekarte/extensions/libflottekarte.so
 subprojects/libprojwrap/
+flottekarte/extensions/src/*
+flottekarte/extensions/include/*
