@@ -44,11 +44,9 @@ with open('pyproject.toml','r') as f:
                 state = 1
         elif state == 1:
             stripped = line.strip()
-            print(stripped)
             if stripped[:10] == "version = ":
                 quote = stripped[10]
                 version_toml = stripped.split(quote)[1]
-                print("quote=",quote)
                 break
 
 # Version in the Sphinx documentation:
@@ -76,3 +74,5 @@ if version_readme != version_toml:
 if version_readme != version_sphinx:
     raise RuntimeError("Versions given in 'README.md' and 'docs/conf.py' "
                        "differ.")
+
+print("All three versions agree:", version_readme)
