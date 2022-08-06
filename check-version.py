@@ -29,6 +29,8 @@ with open('README.md','r') as f:
                 state = 1
         elif state == 1:
             # Find the first version:
+            if line[16] == "### [Unreleased]":
+                continue
             if line[:5] == "### [":
                 version_readme = line[5:].split(']')[0]
                 break
