@@ -5,21 +5,47 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+
 jobs:
-  build:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Build HTML
-      uses: ammaraskar/sphinx-action@0.4
+    - name: Build FlotteKarte
+      run: |
+          sudo apt-get install -y libproj-dev libboost-dev \
+                                  build-essential git openssh-client ssh \
+                                  python3-sphinx ninja-build
+          pip install numpy matplotlib pyproj meson
+          bash compile.sh
+          pip install --user .
+    - name: Build HTML v2
+      run: |
+          cd docs
+          make html
+          cd ..
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: html-docs
-        path: docs/build/html/
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
+        path: docs/_build/html/
+    - name: Upload Website
+      uses: actions/upload-pages-artifact@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/build/html
+        # Upload website:
+        path: 'docs/_build/html'
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@main
