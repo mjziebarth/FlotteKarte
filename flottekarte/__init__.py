@@ -19,3 +19,4 @@
 
 from .map import Map
 from .data import GeoJSON
+from .extensions.cdll import recompile_flottekarte

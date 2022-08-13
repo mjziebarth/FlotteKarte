@@ -29,6 +29,11 @@ if [ ! -d flottekarte/extensions/src/ ]; then
     ln -s ../../src
     cd ../..
 fi
+if [ ! -d flottekarte/extensions/subprojects/ ]; then
+    cd flottekarte/extensions/
+    ln -s ../../subprojects
+    cd ../..
+fi
 if [ ! -f flottekarte/extensions/meson.build ]; then
     cd flottekarte/extensions
     ln -s ../../meson.build

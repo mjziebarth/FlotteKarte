@@ -23,4 +23,5 @@ packages = ["flottekarte","flottekarte.extensions","flottekarte.data"]
 
 [tool.setuptools.package-data]
 flottekarte = ["extensions/libflottekarte.so", "extensions/meson.build",
-               "extensions/include/*", "extensions/src/*"]
+               "extensions/include/*", "extensions/src/*",
+               "extensions/subprojects/*"]
