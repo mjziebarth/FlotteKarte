@@ -147,6 +147,10 @@ The map should look like the following:
 ![Iceland map](docs/images/iceland-example-map.png)
 
 
+## Documentation
+For further documentation, visit the
+[FlotteKarte documentation](https://mjziebarth.github.io/FlotteKarte/index.html)
+
 ## License
 This software is licensed under the European Public License (EUPL) version 1.2 or later.
 
