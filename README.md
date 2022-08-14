@@ -1,7 +1,7 @@
-flottekarte
-=======
+FlotteKarte
+===========
 
-**flottekarte** is a Python library for quick and versatile cartography
+**FlotteKarte** is a Python library for quick and versatile cartography
 based on PROJ4-string syntax and using Matplotlib, NumPy, and PyPROJ under
 the hood.
 
@@ -15,16 +15,13 @@ pip install --user
 ```
 
 ### Recompiling the backend after an update to PROJ
-If the system's PROJ library is updated, FlotteKarte might be linked to a shared
-library that is no longer available on the system. Recompiling FlotteKarte will
-be necessary. This can be performed from within Python with the provided
-`recompile_flottekarte` function:
-```python
-from flottekarte import recompile_flottekarte
-recompile_flottekarte()
-```
-Afterwards, Python needs to be restarted to make the recompiled backend
-available.
+If the system's PROJ library is updated, FlotteKarte might be linked to a
+shared library that is no longer available on the system. Recompiling
+FlotteKarte will be necessary. This will automatically be performed at
+import time if a failure to load the shared library is detected.
+
+For this reason, Meson and Jinja need to be available on the system if the
+PROJ library that FlotteKarte is linked to changes.
 
 
 ### Requirements
