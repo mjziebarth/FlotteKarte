@@ -1,8 +1,10 @@
-# FlotteKarte initialization module.
+#!/bin/python
+# This script checks whether the compiled backend `libflottekarte.so`
+# can be loaded (or, alternatively, if there is a linking error).
 #
 # Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
 #
-# Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+# Copyright (C) 2022 Malte J. Ziebarth
 #
 # Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
 # the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -17,6 +19,14 @@
 # See the Licence for the specific language governing permissions and
 # limitations under the Licence.
 
-from .extensions.cdll import recompile_flottekarte
-from .map import Map
-from .data import GeoJSON
+import pathlib
+from ctypes import CDLL
+
+# Load the shared library:
+_parent_directory = pathlib.Path(__file__).parent
+_cdll_path = _parent_directory / 'libflottekarte.so'
+try:
+    CDLL(_cdll_path)
+except OSError:
+    raise ImportError("Could not load the compiled backend "
+                      "'libflottekarte.so'.")

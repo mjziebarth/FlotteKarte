@@ -25,20 +25,24 @@ from ctypes import CDLL
 from shutil import copyfile
 from warnings import warn
 
-# Load the shared library:
+# Paths to the extension:
 _parent_directory = pathlib.Path(__file__).parent
 _cdll_path = _parent_directory / 'libflottekarte.so'
-try:
-    _cdll = CDLL(_cdll_path)
-except OSError:
-    _cdll = None
-    raise ImportError("Could not load the compiled backend "
-                      "'libflottekarte.so'. Most likely this means that your "
-                      "system library has been updated and you need to "
-                      "recompile the FlotteKarte backend. You can do so from "
-                      "within Python by importing and calling the function "
-                      "`flottekarte.recompile_flottekarte`. Afterwards, "
-                      "restarting Python will be necessary.")
+
+
+# A function to check whether the flottekarte shared object can
+# be loaded. Does so in a separate process so that, on failure,
+# the object can be replaced:
+def can_load_flottekarte():
+    """
+    This function checks whether the compiled backend can be loaded.
+    """
+    try:
+        res = subprocess.run(["python",_parent_directory / "test-cdll.py"],
+                             check=True)
+    except subprocess.CalledProcessError:
+        return False
+    return True
 
 
 # Recompilation facility:
@@ -47,13 +51,6 @@ def recompile_flottekarte():
     Recompile the C++ backend and link against updated PROJ system
     library.
     """
-    global _cdll
-    if _cdll is not None:
-        warn("Recompiling with a loaded backend can lead to a Python crash. "
-             "Please restart Python after the compilation was successful.")
-    else:
-        _cdll = None
-
     # Current directory:
     current_dir = pathlib.Path.cwd().absolute()
 
@@ -80,8 +77,19 @@ def recompile_flottekarte():
     copyfile((_parent_directory / "builddir" / "libflottekarte.so").absolute(),
              (_parent_directory / "libflottekarte.so").absolute())
 
-    # Ensure that we do not try to access any loaded CDLL:
-    _cdll = None
-
     # Change back to working directory:
     os.chdir(current_dir)
+
+
+# See if the import works:
+if not can_load_flottekarte():
+    # Recompile:
+    recompile_flottekarte()
+
+
+# Load the shared library:
+try:
+    _cdll = CDLL(_cdll_path)
+except OSError:
+    raise ImportError("Could not load the compiled backend "
+                      "'libflottekarte.so'. Trying to recompile failed.")
