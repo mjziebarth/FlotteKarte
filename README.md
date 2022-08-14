@@ -14,16 +14,6 @@ A typical install might be performed by executing the following two commands
 pip install --user
 ```
 
-### Recompiling the backend after an update to PROJ
-If the system's PROJ library is updated, FlotteKarte might be linked to a
-shared library that is no longer available on the system. Recompiling
-FlotteKarte will be necessary. This will automatically be performed at
-import time if a failure to load the shared library is detected.
-
-For this reason, Meson and Jinja need to be available on the system if the
-PROJ library that FlotteKarte is linked to changes.
-
-
 ### Requirements
 The following software has to be installed:
  - PROJ
@@ -32,9 +22,21 @@ The following software has to be installed:
  - Matplotlib
  - PyProj
  - SciPy
+ - Meson
+ - Ninja
 
 The following software will be automatically downloaded during Meson installation:
  - [ProjWrapCpp](https://github.com/mjziebarth/ProjWrapCpp)
+
+### Recompiling the backend after an update to PROJ
+If the system's PROJ library is updated, FlotteKarte might be linked to a
+shared library that is no longer available on the system. Recompiling
+FlotteKarte will be necessary. This will automatically be performed at
+import time if a failure to load the shared library is detected.
+
+For this reason, Meson and Ninja need to be available on the system if the
+PROJ library that FlotteKarte is linked to changes.
+
 
 ## Usage
 FlotteKarte is a low-overhead plotting routine. The conceptual idea behind this package
