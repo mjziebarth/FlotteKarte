@@ -1,7 +1,7 @@
-flottekarte
-=======
+FlotteKarte
+===========
 
-**flottekarte** is a Python library for quick and versatile cartography
+**FlotteKarte** is a Python library for quick and versatile cartography
 based on PROJ4-string syntax and using Matplotlib, NumPy, and PyPROJ under
 the hood.
 
@@ -22,9 +22,21 @@ The following software has to be installed:
  - Matplotlib
  - PyProj
  - SciPy
+ - Meson
+ - Ninja
 
 The following software will be automatically downloaded during Meson installation:
  - [ProjWrapCpp](https://github.com/mjziebarth/ProjWrapCpp)
+
+### Recompiling the backend after an update to PROJ
+If the system's PROJ library is updated, FlotteKarte might be linked to a
+shared library that is no longer available on the system. Recompiling
+FlotteKarte will be necessary. This will automatically be performed at
+import time if a failure to load the shared library is detected.
+
+For this reason, Meson and Ninja need to be available on the system if the
+PROJ library that FlotteKarte is linked to changes.
+
 
 ## Usage
 FlotteKarte is a low-overhead plotting routine. The conceptual idea behind this package
@@ -145,6 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### [Unreleased]
 #### Added
 - Guard against non-identical version numbers across the project.
+- Outsource the `flottekarte` shared object loading check to a subprocess
+- Automatic recompilation of the shared object if loading fails.
 
 ### [0.2.2] - 2022-08-05
 #### Added
