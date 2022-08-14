@@ -158,6 +158,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### [Unreleased]
 #### Added
 - Guard against non-identical version numbers across the project.
+- Outsource the `flottekarte` shared object loading check to a subprocess
+- Automatic recompilation of the shared object if loading fails.
 
 ### [0.2.2] - 2022-08-05
 #### Added
