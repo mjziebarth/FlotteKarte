@@ -151,6 +151,13 @@ The map should look like the following:
 For further documentation, visit the
 [FlotteKarte documentation](https://mjziebarth.github.io/FlotteKarte/index.html)
 
+## Citation
+If you use FlotteKarte in your scientific publication, please consider citing it with the following citation:
+
+> Ziebarth, Malte Jörn (2022): FlotteKarte - a Python library for quick and versatile cartography based on PROJ4-string. GFZ Data Services. https://doi.org/10.5880/GFZ.2.6.2022.003
+
+You can also consider adding the version tag you used.
+
 ## License
 This software is licensed under the European Public License (EUPL) version 1.2 or later.
 
