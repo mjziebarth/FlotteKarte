@@ -60,7 +60,10 @@ def automatic_map_extents(proj_str: str, proj: Optional[Proj] = None)\
 
     # Now handle the known cases:
     if projection in _GLOBAL_PROJECTIONS_1:
-        lon_0 = float(extract_proj_parameter(proj_str, "lon_0"))
+        if "lon_0" in proj_str:
+            lon_0 = float(extract_proj_parameter(proj_str, "lon_0"))
+        else:
+            lon_0 = 0.0
         xmin = proj((lon_0-179.999) % 360.0, 0)[0]
         xmax = proj((lon_0+179.999) % 360.0, 0)[0]
         ymin = proj(lon_0, -90.0)[1]
