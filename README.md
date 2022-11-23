@@ -166,6 +166,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Unreleased
+#### Added
+- `GeoJSON` now uses the matplotlib `_path` facility to crop polygons to map
+  extents. This is useful for reducing the file size when looking at small
+  coast segments of detailed continental polygons.
+
 #### Changed
 - When determining `lon_0` of global projection strings, guard against
   unspecified default values.

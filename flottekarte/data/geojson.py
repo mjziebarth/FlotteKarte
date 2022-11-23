@@ -2,7 +2,8 @@
 #
 # Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
 #
-# Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+# Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+#               2022 Malte J. Ziebarth
 #
 # Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
 # the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -21,9 +22,20 @@ import json
 import numpy as np
 from typing import Union, Optional, Tuple
 from pyproj import Proj
+from matplotlib.path import Path
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from warnings import warn
+
+# Using matplotlib backend to clip the polygon paths to the map extent:
+try:
+    from matplotlib import _path
+    _has_matplotlib_path = True
+except ImportError:
+    _has_matplotlib_path = False
+    warn("Could not load the matplotlib '_path' module. Polygon clipping "
+         "to map extents will not be possible.")
+
 
 def assert_geojson_sanity(geojson_dict):
     """
@@ -103,6 +115,28 @@ class GeoJSON:
                 return True
             select_polygon = select_points
 
+        # Cropping the paths:
+        if _has_matplotlib_path:
+            def crop_poly(poly):
+                # Create an (N+1,2)-shaped array of coordinates,
+                # with the last entry being unused (corresponds to
+                # matplotlib Path.CLOSEPOLY code)
+                path = np.empty((poly.shape[0]+1, 2))
+                path[:-1,:] = poly
+
+                # Code of a closed matplotlib Path:
+                codes = np.full(path.shape[0], Path.LINETO,
+                                dtype=Path.code_type)
+                codes[0] = Path.MOVETO
+                codes[-1] = Path.CLOSEPOLY
+                path = Path(path, codes=codes)
+
+                # Use the Matplotlib C++ backend code to crop the path
+                # to the map extents:
+                return _path.clip_path_to_rect(path, ((xlim[0],ylim[0]),
+                                                      (xlim[1],ylim[1])),
+                                               True)
+
         # Iterate through the features:
         points = []
         multipoints = []
@@ -130,7 +164,7 @@ class GeoJSON:
                     x,y = proj(*np.array(lola).T)
                     if not select_polygon(x,y):
                         continue
-                    poly.append(np.stack((x,y),axis=1))
+                    poly.extend(crop_poly(np.stack((x,y), axis=1)))
                 polygons.append(poly)
 
             elif geom_type == "MultiPolygon":
@@ -143,7 +177,7 @@ class GeoJSON:
                         x,y = proj(*np.array(lola).T)
                         if not select_polygon(x,y):
                             continue
-                        poly.append(np.stack((x,y),axis=1))
+                        poly.extend(crop_poly(np.stack((x,y), axis=1)))
                     if len(poly) > 0:
                         multipoly.append(poly)
                 if len(multipoly) > 0:
