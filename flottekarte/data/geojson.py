@@ -116,7 +116,7 @@ class GeoJSON:
             select_polygon = select_points
 
         # Cropping the paths:
-        if _has_matplotlib_path:
+        if _has_matplotlib_path and xlim is not None and ylim is not None:
             def crop_poly(poly):
                 # Create an (N+1,2)-shaped array of coordinates,
                 # with the last entry being unused (corresponds to
@@ -136,6 +136,10 @@ class GeoJSON:
                 return _path.clip_path_to_rect(path, ((xlim[0],ylim[0]),
                                                       (xlim[1],ylim[1])),
                                                True)
+        else:
+            # No-op:
+            def crop_poly(poly):
+                return [poly]
 
         # Iterate through the features:
         points = []
