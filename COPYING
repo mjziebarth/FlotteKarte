@@ -1,0 +1,22 @@
+FlotteKarte: a low-overhead cartography package
+
+===============================================
+
+
+LICENSE:
+
+
+FlotteKarte is licensed under the licensed under the EUPL-1.2-or-later.
+You should have received a copy of the EUPL v1.2, a file named LICENSE, along
+with this program. Consult this file for terms of the license.
+
+
+Copyright © 2022 Helmholtz Centre Potsdam GFZ German Research Centre for Geosciences, Potsdam, Germany,
+                 Malte J. Ziebarth
+
+===================================================
+
+
+CITATION:
+
+Ziebarth, Malte Jörn (2022): FlotteKarte - a Python library for quick and versatile cartography based on PROJ4-string. GFZ Data Services. https://doi.org/10.5880/GFZ.2.6.2022.003
