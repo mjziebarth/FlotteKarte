@@ -1,0 +1,4 @@
+option('portable', type : 'boolean', value : false,
+       description : 'Whether to compile the binaries portably. If not, ' +
+                     'march=native and mtune=native switches are applied.'
+       )

@@ -1,5 +1,12 @@
 project('flottekarte', 'cpp')
-add_project_arguments('-O3', '-march=native',  language : 'cpp')
+add_project_arguments('-O3',  language : 'cpp')
+
+# Use natively tuned code by default - turn off by use of the 'portable'
+# option:
+if not get_option('portable')
+    add_project_arguments(['-march=native','-mtune=native'], language : 'cpp')
+endif
+
 # Projwrapper subprocject:
 libprojwrap_proj = subproject('libprojwrap')
 libprojwrap_dep = libprojwrap_proj.get_variable('libprojwrap_dep')
