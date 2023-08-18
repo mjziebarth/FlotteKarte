@@ -165,6 +165,12 @@ This software is licensed under the European Public License (EUPL) version 1.2 o
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [0.2.7] - 2023-08-18
+#### Added
+- Check for the existence of a `type=crs` argument in the PROJ string, which
+  leads to `Object is not a coordinate operation` under the hood, and raise
+  errors if detected.
+
 ### [0.2.6] - 2023-01-03
 #### Added
 - Add Meson build option 'portable' to disable native tuning of the binaries.

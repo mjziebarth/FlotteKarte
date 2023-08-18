@@ -81,6 +81,9 @@ class Map:
                  bisection_offset: Union[Literal['auto'],float] ='auto',
                  minimum_node_distance: Union[Literal['auto'],float] = 'auto',
                  atol: Union[Literal['auto'],float] = 'auto'):
+        if 'type=crs' in proj_str:
+            raise ValueError("Likely running into PROJ error if 'type=crs' "
+                             "is given. Please remove this argument.")
         self.proj_str = proj_str
         self.ax = ax
         if proj is None:
