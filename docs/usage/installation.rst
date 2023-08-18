@@ -1,15 +1,17 @@
 Installation
 ============
 Currently, installation is a bit hacky. It uses the **Meson Build system** to
-compile the C++ binary extension (loaded with `ctypes`). Then, a `pip` build
-using `setuptools` `pyproj.toml` can be performed and will copy the compiled
-binary to the right location.
+compile the C++ binary extension (loaded with `ctypes`). This command is invoked
+whenever the backend binary library fails to be imported at runtime. Hence, the
+library is compiled at first run after the (Python-only) install.
 
-In short, perform the following two steps in the project's main directory:
+In short, perform the following command in the project's main directory:
 
 .. code:: Bash
 
-    ./compile.sh
     pip install --user .
 
-That should work (hopefully).
+That should work (hopefully). A working compiler and the Meson build system
+are required to run the package afterwards. The local install is critical here:
+if the Python process loading the library does not have write access to the
+package directory, the backend cannot be compiled.
