@@ -1,9 +1,10 @@
 name: Sphinx build
 
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [published]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -29,7 +30,6 @@ jobs:
                                   build-essential git openssh-client ssh \
                                   python3-sphinx ninja-build
           pip install numpy matplotlib pyproj meson
-          bash compile.sh
           pip install --user .
     - name: Build HTML v2
       run: |
