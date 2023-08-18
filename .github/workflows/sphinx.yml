@@ -28,8 +28,11 @@ jobs:
           sudo apt-get install -y libproj-dev libboost-dev \
                                   build-essential git openssh-client ssh \
                                   python3-sphinx ninja-build
-          sudo apt purge python3-setuptools
           pip install numpy matplotlib pyproj meson
+          # Fix a weird bug on Ubuntu 22.04 that leads to package UNKNOWN:
+          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1104943440
+          pip install --upgrade --user pip
+          sudo apt purge python3-setuptools
           pip install --user .
     - name: Build HTML v2
       run: |
