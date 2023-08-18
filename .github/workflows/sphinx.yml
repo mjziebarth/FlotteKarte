@@ -33,7 +33,7 @@ jobs:
           # https://github.com/pypa/setuptools/issues/3269#issuecomment-1104943440
           pip install --upgrade --user pip
           sudo apt purge python3-setuptools
-          pip install --user .
+          python -m pip install --user .
     - name: Build HTML v2
       run: |
           cd docs
