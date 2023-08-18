@@ -1,10 +1,9 @@
 name: Sphinx build
 
 on:
-  release:
-    types: [published]
+  push:
     branches:
-      - main
+      - 'v*.*.*'
 
 permissions:
   contents: read
