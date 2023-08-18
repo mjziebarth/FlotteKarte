@@ -2,7 +2,7 @@
 
 [project]
 name = "flottekarte"
-version = "0.2.7"
+version = "0.2.8"
 description = "Plotting with PROJ and Matplotlib."
 authors = [
     {name = "Malte J. Ziebarth", email = "ziebarth@gfz-potsdam.de"}
