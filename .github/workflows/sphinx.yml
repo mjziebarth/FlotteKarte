@@ -28,6 +28,7 @@ jobs:
           sudo apt-get install -y libproj-dev libboost-dev \
                                   build-essential git openssh-client ssh \
                                   python3-sphinx ninja-build
+          sudo apt purge python3-setuptools
           pip install numpy matplotlib pyproj meson
           pip install --user .
     - name: Build HTML v2
