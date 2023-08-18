@@ -37,6 +37,9 @@ import time if a failure to load the shared library is detected.
 For this reason, Meson and Ninja need to be available on the system if the
 PROJ library that FlotteKarte is linked to changes.
 
+If this package should be packaged for some system package manager, the file
+`flottekarte/extensions/cdll.py` would have to be adjusted, see comments
+therein.
 
 ## Usage
 FlotteKarte is a low-overhead plotting routine. The conceptual idea behind this package
@@ -164,6 +167,11 @@ This software is licensed under the European Public License (EUPL) version 1.2 o
 ## Changelog
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+### [0.2.8] - 2023-08-19
+#### Changed
+- Reorganized the build system of the compiled backend. Use
+  `recompile_flottekarte()` as default compilation mechanism.
 
 ### [0.2.7] - 2023-08-18
 #### Added

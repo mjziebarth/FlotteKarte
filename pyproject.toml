@@ -15,7 +15,7 @@ numpy = "^1.22.0"
 pyproj = "^3.0.0"
 
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools", "setuptools-scm", "meson"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -23,5 +23,6 @@ packages = ["flottekarte","flottekarte.extensions","flottekarte.data"]
 
 [tool.setuptools.package-data]
 flottekarte = ["extensions/libflottekarte.so", "extensions/meson.build",
+               "extensions/meson_options.txt",
                "extensions/include/*", "extensions/src/*",
                "extensions/subprojects/*"]

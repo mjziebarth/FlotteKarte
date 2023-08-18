@@ -17,17 +17,32 @@
 # See the Licence for the specific language governing permissions and
 # limitations under the Licence.
 
+
 import os
 import pathlib
 import subprocess
 import numpy as np
 from ctypes import CDLL
-from shutil import copyfile
-from warnings import warn
+from shutil import copyfile, rmtree
+from logging import info
 
 # Paths to the extension:
 _parent_directory = pathlib.Path(__file__).parent
 _cdll_path = _parent_directory / 'libflottekarte.so'
+
+
+#
+# Info for system packaging this Python package:
+# This file would have to be modified since recompilation should not write
+# into the system-wide Python packages directory.
+# The meson build would have to be performed by the packager, and
+# libflottekarte.so would have to be shipped with the package.
+# The following code can all be removed within [BEGIN] to [END]
+#
+# [BEGIN]
+
+# Whether to keep the Meson build directory or not.
+_keep_meson_builddir_subprojects = False
 
 
 # A function to check whether the flottekarte shared object can
@@ -39,14 +54,14 @@ def can_load_flottekarte():
     """
     try:
         res = subprocess.run(["python",_parent_directory / "test-cdll.py"],
-                             check=True)
+                             check=True, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         return False
     return True
 
 
 # Recompilation facility:
-def recompile_flottekarte():
+def recompile_flottekarte(verbose: bool = False):
     """
     Recompile the C++ backend and link against updated PROJ system
     library.
@@ -70,12 +85,20 @@ def recompile_flottekarte():
     os.chdir(_parent_directory)
 
     # Perform Meson build:
-    subprocess.run(["meson","setup","builddir"], check=True)
-    subprocess.run(["meson","compile","-C","builddir"], check=True)
+    kwargs = {}
+    if not verbose:
+        kwargs["stdout"] = subprocess.DEVNULL
+        kwargs["stderr"] = subprocess.DEVNULL
+    subprocess.run(["meson","setup","builddir"], check=True, **kwargs)
+    subprocess.run(["meson","compile","-C","builddir"], check=True, **kwargs)
 
     # Copy the compiled library:
     copyfile((_parent_directory / "builddir" / "libflottekarte.so").absolute(),
              (_parent_directory / "libflottekarte.so").absolute())
+
+    if not _keep_meson_builddir_subprojects:
+        rmtree((_parent_directory / "builddir").absolute())
+        rmtree((_parent_directory / "subprojects" / "libprojwrap").absolute())
 
     # Change back to working directory:
     os.chdir(current_dir)
@@ -84,8 +107,10 @@ def recompile_flottekarte():
 # See if the import works:
 if not can_load_flottekarte():
     # Recompile:
+    print("Need to recompile FlotteKarte backend libflottekarte.so...")
     recompile_flottekarte()
 
+# [END]
 
 # Load the shared library:
 try:
