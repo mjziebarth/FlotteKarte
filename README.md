@@ -7,12 +7,15 @@ the hood.
 
 ## Installing
 The install system is based on the Meson build system and Python setuptools.
-A typical install might be performed by executing the following two commands
-(of which the second should suffice on its own) within this project directory:
+A typical install might be performed by executing the following command
+within this project directory:
 ```sh
-./compile.sh
-pip install --user
+pip install --user .
 ```
+At first import of `flottekarte`, the Meson build system will be invoked to
+compile the backend. Similarly, whenever importing the backend fails (e.g. if
+the system PROJ library was updated) the backend is recompiled. For this reason,
+FlotteKarte needs to be installed with write permissions (i.e. user install).
 
 ### Requirements
 The following software has to be installed:
@@ -168,10 +171,11 @@ This software is licensed under the European Public License (EUPL) version 1.2 o
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [Unreleased]
+### [0.2.9] - 2023-08-19
 #### Changed
 - Work on Github actions.
 - Documentation updates.
+- Metadata updates.
 
 ### [0.2.8] - 2023-08-19
 #### Changed

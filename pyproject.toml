@@ -2,12 +2,32 @@
 
 [project]
 name = "flottekarte"
-version = "0.2.8"
+version = "0.2.9"
 description = "Plotting with PROJ and Matplotlib."
 authors = [
     {name = "Malte J. Ziebarth", email = "ziebarth@gfz-potsdam.de"}
 ]
 requires-python = ">=3.8"
+readme = "README.md"
+license = {file="LICENSE"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Matplotlib",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux"
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/mjziebarth/FlotteKarte"
+"Bug Tracker" = "https://github.com/mjziebarth/FlotteKarte/issues"
+"Documentation" = "https://mjziebarth.github.io/FlotteKarte/index.html"
 
 [dependencies]
 matplotlib = "^3.5.1"
@@ -19,7 +39,10 @@ requires = ["setuptools", "setuptools-scm", "meson"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["flottekarte","flottekarte.extensions","flottekarte.data"]
+packages = ["flottekarte", "flottekarte.extensions", "flottekarte.data",
+            "flottekarte.extensions.include", "flottekarte.extensions.src",
+            "flottekarte.extensions.subprojects"]
+license-files = ["LICENSE","COPYING"]
 
 [tool.setuptools.package-data]
 flottekarte = ["extensions/libflottekarte.so", "extensions/meson.build",

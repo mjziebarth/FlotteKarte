@@ -18,11 +18,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'flottekarte'
-copyright = '2022, Deutsches GeoForschungsZentrum Potsdam & Malte J. Ziebarth'
+copyright = '2022, Deutsches GeoForschungsZentrum Potsdam; 2022-2023, Malte J. Ziebarth'
 author = 'Malte J. Ziebarth'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.8'
+release = '0.2.9'
 
 
 # -- General configuration ---------------------------------------------------
