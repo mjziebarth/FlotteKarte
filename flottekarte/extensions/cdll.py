@@ -66,6 +66,10 @@ def recompile_flottekarte(verbose: bool = False):
     Recompile the C++ backend and link against updated PROJ system
     library.
     """
+    # Be more verbose when we are in a test:
+    dieselnegate = os.environ.get("PYTEST_VERSION") is not None
+    verbose = verbose or dieselnegate
+
     # Current directory:
     current_dir = pathlib.Path.cwd().absolute()
 
