@@ -80,7 +80,7 @@ int inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
 
 		#pragma omp parallel for
 		for (size_t i=0; i<Npoints; ++i){
-			xy_t xy({x[i], y[i]});
+			xy_t xy(x[i], y[i]);
 			try {
 				/* First try to use PROJ inverse of projection: */
 				geo_t lola(proj.inverse(xy));

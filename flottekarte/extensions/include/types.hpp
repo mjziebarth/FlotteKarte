@@ -48,6 +48,9 @@ public:
 	xy_t(xy_t&&) = default;
 	xy_t(const xy_t&) = default;
 
+	xy_t(projwrapper::xy_t&& xy);
+	xy_t(const projwrapper::xy_t& xy);
+
 	xy_t& operator=(const xy_t& other) = default;
 
 	template<

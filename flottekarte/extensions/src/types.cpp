@@ -24,6 +24,12 @@
 
 namespace flottekarte {
 
+xy_t::xy_t(projwrapper::xy_t&& xy) : projwrapper::xy_t(std::move(xy))
+{}
+
+xy_t::xy_t(const projwrapper::xy_t& xy) : projwrapper::xy_t(xy)
+{}
+
 xy_t& xy_t::operator+=(const xy_t& other)
 {
     x += other.x;
