@@ -55,7 +55,7 @@ to 2D cartesian space, and by introducing typical map decorations such as grids 
 FlotteKarte aims to fill this gap with a simple interface.
 
 FlotteKarte's philosophy is to work completely within the 2D projected coordinates,
-that is, very close to the projected data. If projected coordinates of data can be 
+that is, very close to the projected data. If projected coordinates of data can be
 obtained, the data can be drawn directly on the underlying Matplotlib Axes. The
 `Map` class can then be used to add typical map decoration to that axes using information
 that it derives from the numerics of the PROJ projection.
@@ -174,6 +174,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### [Unreleased]
 #### Changed
 - Add Meson as runtime dependency (not only install).
+
+#### Added
+- C++ internals: add axis-aligned bounding box implementation.
+- Add pytest Github workflow.
 
 ### [0.2.9] - 2023-08-19
 #### Changed
