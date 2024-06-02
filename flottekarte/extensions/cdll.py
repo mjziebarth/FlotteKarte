@@ -93,7 +93,8 @@ def recompile_flottekarte(verbose: bool = False):
     if not verbose:
         kwargs["stdout"] = subprocess.DEVNULL
         kwargs["stderr"] = subprocess.DEVNULL
-    subprocess.run(["meson","setup","builddir"], check=True, **kwargs)
+    subprocess.run(["meson","setup","--reconfigure","builddir"],
+                   check=True, **kwargs)
     subprocess.run(["meson","compile","-C","builddir"], check=True, **kwargs)
 
     # Copy the compiled library:
