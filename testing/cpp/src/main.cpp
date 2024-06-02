@@ -26,20 +26,20 @@
  */
 namespace flottekarte {
 
-void test_aabbtree();
+void test_interpolate();
 
 }
 
 
 int main(){
     try {
-        flottekarte::test_aabbtree();
+        flottekarte::test_interpolate();
     } catch (const std::exception& err){
-        std::cerr << "AABBTree test failed.\n" << std::flush;
+        std::cerr << "Interpolate test failed.\n" << std::flush;
         std::cerr << "Error message: '" << err.what() << "'\n" << std::flush;
         return 1;
     } catch (...){
-        std::cerr << "AABBTree test failed with unknown throw.\n" << std::flush;
+        std::cerr << "Interpolate test failed with unknown throw.\n" << std::flush;
         return 1;
     }
 

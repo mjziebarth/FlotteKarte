@@ -20,6 +20,7 @@
  */
 
 #include <vector>
+#include <type_traits>
 #include <projwrapper.hpp>
 
 #ifndef FLOTTEKARTE_TYPES_HPP
@@ -29,7 +30,6 @@ namespace flottekarte {
 
 /* Use defines from projwrappertypes.hpp: */
 constexpr double PI = projwrapper::PI;
-typedef projwrapper::xy_t xy_t;
 typedef projwrapper::geo_t geo_t;
 typedef projwrapper::geo_degrees_t geo_degrees_t;
 using projwrapper::deg2rad;
@@ -38,6 +38,41 @@ using projwrapper::modulo;
 using projwrapper::ProjWrapper;
 using projwrapper::ProjError;
 
+class xy_t : public projwrapper::xy_t
+{
+public:
+	xy_t(double x, double y) : projwrapper::xy_t(x, y)
+	{}
+
+	xy_t() = default;
+	xy_t(xy_t&&) = default;
+	xy_t(const xy_t&) = default;
+
+	xy_t& operator=(const xy_t& other) = default;
+
+	template<
+		typename number,
+		typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+	>
+	xy_t operator*(number n) const
+	{
+		return res(n*x, n*y);
+	}
+
+
+	template<
+		typename number,
+		typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+	>
+	xy_t& operator*=(number n)
+	{
+		x *= n;
+		y *= n;
+		return *this;
+	}
+
+	xy_t& operator+=(const xy_t&);
+};
 
 typedef std::vector<geo_degrees_t> path_geo_t;
 typedef std::vector<xy_t> path_xy_t;
@@ -49,6 +84,32 @@ enum axis_t {
 enum tick_t {
 	TICK_LON=0, TICK_LAT=1, TICK_NONE=2
 };
+
+
+
+
+/*
+ * Further arithmetic operators:
+ */
+template<
+	typename number,
+	typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+>
+xy_t operator*(number n, xy_t&& xy)
+{
+	xy.x *= n;
+	xy.y *= n;
+	return xy;
+}
+
+template<
+	typename number,
+	typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+>
+xy_t operator*(number n, const xy_t& xy)
+{
+	return xy_t(n*xy.x, n*xy.y);
+}
 
 }
 

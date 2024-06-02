@@ -13,11 +13,11 @@ include = [
 dependencies = [dependency('proj'),dependency('openmp'),libprojwrap_dep]
 
 sources_fk = files(
-    '../../flottekarte/extensions/src/aabbtree.cpp',
-    '../../flottekarte/extensions/src/geometry.cpp'
+    '../../flottekarte/extensions/src/interpolate.cpp',
+    '../../flottekarte/extensions/src/types.cpp',
 )
 
-sources = ['src/test_aabb.cpp', 'src/main.cpp']
+sources = ['src/main.cpp', 'src/test_interpolate.cpp']
 executable('test_flottekarte',
         sources : [sources_fk, sources],
         include_directories : include,

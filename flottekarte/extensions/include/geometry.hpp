@@ -24,87 +24,96 @@
 
 #include <../include/types.hpp>
 
-namespace flottekarte {
-
-struct segment_t;
-struct circle_t;
-
 /*
- * Axis-aligned bounding box
- * -------------------------
+ * Make xy_t available as a boost point:
  */
-struct bbox_t {
-    double xmin;
-    double xmax;
-    double ymin;
-    double ymax;
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/core/cs.hpp>
 
-    bbox_t(double xmin, double xmax, double ymin, double ymax);
+namespace boost { namespace geometry { namespace traits
+{
 
-    bbox_t(const xy_t& p0, const xy_t& p1);
-
-    bbox_t(const bbox_t& b0, const bbox_t& b1);
-
-    bbox_t(const segment_t& s);
-
-    bbox_t(const circle_t& c);
-
-    double area() const;
+template<>
+struct tag<flottekarte::xy_t> { using type = point_tag; };
+template<>
+struct dimension<flottekarte::xy_t> : boost::mpl::int_<2> {};
+template<>
+struct coordinate_type<flottekarte::xy_t> { using type = double; };
+template<>
+struct coordinate_system<flottekarte::xy_t> {
+    using type = boost::geometry::cs::cartesian;
 };
 
+template<std::size_t Index>
+struct access<flottekarte::xy_t, Index> {
+    static_assert(Index < 2, "Out of range");
+    using Point = flottekarte::xy_t;
+    using CoordinateType = typename coordinate_type<Point>::type;
+    static inline CoordinateType get(Point const& p)
+    {
+        if constexpr (Index == 0)
+            return p.x;
+        else
+            return p.y;
+    }
+    static inline void set(Point& p, CoordinateType const& value)
+    {
+        if constexpr (Index == 0)
+            p.x = value;
+        else
+            p.y = value;
+    }
+};
+
+}}} // namespace boost::geometry::traits
+
+#include <boost/geometry/strategies/cartesian.hpp>
+#include <boost/geometry/geometries/segment.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <boost/geometry/algorithms/closest_points.hpp>
+
+namespace flottekarte {
 
 /*
  * Line segment
  * ------------
  */
-struct segment_t {
-    xy_t p0;
-    xy_t p1;
-
-    segment_t() = default;
-    segment_t(const xy_t& p0, const xy_t& p1);
-
-    bbox_t bbox() const;
-
-    bool operator==(const segment_t& other) const;
-};
+using segment_t = boost::geometry::model::segment<flottekarte::xy_t>;
 
 
-/*
- * Circle
- * ------
- */
-struct circle_t {
-    xy_t center;
-    double r = 0.0;
-
-    circle_t() = default;
-    circle_t(const xy_t& center, double r);
-
-    bbox_t bbox() const;
-
-    bool operator==(const circle_t& other) const;
-};
+template<typename index_t>
+using SegmentTree
+   = boost::geometry::index::rtree<
+        segment_t,
+        boost::geometry::index::quadratic<16>
+>;
 
 
-/*
- * Distances:
- */
-double distance2(const xy_t& p, const segment_t& s);
-double distance(const xy_t& p, const segment_t& s);
+template<typename Tree, typename Geometry>
+bool within_range(const Tree& tree, const Geometry& geom, double r)
+{
+    namespace bgi = boost::geometry::index;
 
+    /* Check whether we can query anything: */
+    if (tree.size() == 0)
+        return false;
 
-/*
- * Spatial relations:
- */
-bool contains(const bbox_t& b0, const bbox_t& b1);
+    /* Query the nearest segment: */
+    typedef typename Tree::value_type value_t;
+    std::vector<value_t> nn;
+    bgi::query(tree, bgi::nearest(geom, 1), std::back_inserter(nn));
 
-bool intersects(const bbox_t& b0, const bbox_t& b1);
-bool intersects(const segment_t& s0, const segment_t& s1);
+    /* Compute the closest points between the step and the
+        * nearest segment: */
+    segment_t closest;
+    boost::geometry::closest_points(nn[0], geom, closest);
 
-bool intersects(const circle_t& c, const segment_t& s);
-bool intersects(const segment_t& s, const circle_t& c);
-
+    /* Check whether the distance between the closest points is smaller
+        * than r: */
+    double dx = closest.first.x - closest.second.x;
+    double dy = closest.first.y - closest.second.y;
+    return dx*dx + dy*dy <= r*r;
+}
 
 }
 
