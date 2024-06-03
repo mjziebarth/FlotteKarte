@@ -37,4 +37,11 @@ xy_t& xy_t::operator+=(const xy_t& other)
     return *this;
 }
 
+xy_t xy_t::operator+(xy_t&& other) const
+{
+    other.x += x;
+    other.y += y;
+    return other;
+}
+
 } // end namespace

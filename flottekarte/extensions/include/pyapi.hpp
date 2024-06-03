@@ -55,6 +55,14 @@ int compute_axes_ticks(const char* proj_str, size_t Nseg,
                        double* tick_vertices, unsigned char* which_ticks,
                        unsigned int* Nticks);
 
+int azimuth_geographic_to_local_on_grid_inplace(
+        const char* proj_str,
+        double xmin, double xmax, size_t nx,
+        double ymin, double ymax, size_t ny,
+        double* azimuth_rad, size_t Nazi,
+        double stencil_delta
+);
+
 /*
  * This is the first of a three-part function. Computes grid lines according to
  * settings (projection, x- & ylim, tick spacing, bisection offset,

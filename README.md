@@ -176,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Meson as runtime dependency (not only install).
 
 #### Added
-- C++ internals: add axis-aligned bounding box implementation.
+- C++ internals: add bilinear interpolation, azimuth conversion.
 - Add pytest Github workflow.
 
 ### [0.2.9] - 2023-08-19

@@ -74,6 +74,8 @@ public:
 		return *this;
 	}
 
+	xy_t operator+(xy_t&& other) const;
+
 	xy_t& operator+=(const xy_t&);
 };
 

@@ -20,3 +20,4 @@
 from .extensions.cdll import recompile_flottekarte
 from .map import Map
 from .data import GeoJSON
+from .tensor import TensorField2D

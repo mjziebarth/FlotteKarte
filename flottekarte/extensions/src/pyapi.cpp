@@ -4,7 +4,8 @@
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
  * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
- *                    Malte J. Ziebarth
+ *                    Malte J. Ziebarth,
+ *               2024 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -254,6 +255,74 @@ int compute_axes_ticks(const char* proj_str,
 		return 1;
 	}
 }
+
+
+/******************************************************************************
+ *                             Azimuth conversion                             *
+ ******************************************************************************/
+
+int azimuth_geographic_to_local_on_grid_inplace(
+        const char* proj_str,
+        double xmin, double xmax, size_t nx,
+        double ymin, double ymax, size_t ny,
+        double* azimuth_rad, size_t Nazi,
+        double stencil_delta
+)
+{
+	try {
+		/* Initialize the projection: */
+		ProjWrapper proj(proj_str);
+
+		/* Grid description: */
+		const long double dx = (xmax - (long double)xmin) / nx;
+		const long double dy = (ymax - (long double)ymin) / ny;
+
+		/* Parallel evaluation of the gradients: */
+		#pragma omp parallel for
+		for (size_t k=0; k<Nazi; ++k){
+			/* Compute the geographic coordinates of the grid point: */
+			size_t i = k / ny;
+			size_t j = k % ny;
+			xy_t xy(xmin + i*dx, ymin + j * dy);
+
+			/* Compute coordinate gradients in east and north.
+			 * Note that 'Gradient' computes the derivative of the projected
+			 * coordinates by true physical space, i.e. along two equal
+			 * infinitesimal vectors pointing in the north (lat) and east (lon)
+			 * direction.
+			 * Hence, the gradient quantifies the local affine transform of
+			 * true rectangular coordinates. We can hence add the gradients
+			 * scaled by the angular component to retrieve an unnormed
+			 * directional vector in projected space.
+			 */
+			geo_t lola(proj.inverse(xy));
+			Gradient<FORWARD_5POINT> g(proj, lola, stencil_delta);
+
+			/* Directional vectors: */
+			xy_t east(g.gx_east(), g.gy_east());
+			xy_t north(g.gx_north(), g.gy_north());
+
+			/* Now find the azimuth direction: */
+			xy_t azi_dir(
+				std::sin(azimuth_rad[k]) * east
+				+ std::cos(azimuth_rad[k]) * north
+			);
+
+			/* Find the local azimuth of that vector: */
+			azimuth_rad[k] = std::atan(azi_dir.x / azi_dir.y);
+		}
+
+		/* If all Nazi are converted, we're done! */
+		return 0;
+	} catch (...) {
+		return 1;
+	}
+}
+
+
+/******************************************************************************
+ *                                 Grid lines                                 *
+ ******************************************************************************/
 
 struct grid_lines_t {
 	std::vector<path_xy_t> paths;
