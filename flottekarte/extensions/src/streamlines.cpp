@@ -209,6 +209,8 @@ streamlines(
             raw_result = std::abs(p0 - p1);
         else if (width_mode == SUM)
             raw_result = std::abs(p0 + p1);
+        else if (width_mode == CONSTANT)
+            raw_result = 1.0;
         else
             throw std::runtime_error("Unknown width_mode.");
 

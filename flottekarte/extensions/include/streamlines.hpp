@@ -31,7 +31,8 @@ namespace flottekarte {
 enum width_mode_t : uint8_t
 {
     DIFFERENCE = 0,
-    SUM = 1
+    SUM = 1,
+    CONSTANT = 2
 };
 
 std::vector<path_xy_t>

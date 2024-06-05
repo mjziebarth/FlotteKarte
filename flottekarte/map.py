@@ -298,7 +298,7 @@ class Map:
             ds_min: float = 1e3,
             width_scale: float | Literal['auto'] = 'auto',
             width_margin_factor: float = 2.0,
-            width_mode: Literal['difference','sum'] = 'difference',
+            width_mode: Literal['difference','sum','constant'] = 'difference',
             epsilon: float = 1e-3,
             unwrap_azimuth: bool | Literal['auto'] = 'auto',
             unwrapping_beta: float = 1.5,
@@ -314,7 +314,7 @@ class Map:
         if unwrap_azimuth == 'auto':
             unwrap_azimuth = not t.unwrapped
 
-        assert width_mode in ('difference','sum')
+        assert width_mode in ('difference','sum','constant')
 
         if width_scale == 'auto':
             # Compute the maximum according to width mode:
@@ -324,6 +324,8 @@ class Map:
             elif width_mode == 'sum':
                 width_scale = width_margin_factor \
                     * np.nanmax(np.abs(t.p0 + t.p1))
+            elif width_mode == 'constant':
+                width_scale = width_margin_factor
 
         # Compute streamlines:
         streamline_polys = streamlines(

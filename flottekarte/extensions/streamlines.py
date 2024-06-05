@@ -39,7 +39,7 @@ def streamlines(
         r: float,
         ds_min: float,
         width_scale: float,
-        width_mode: Literal['difference','sum'],
+        width_mode: Literal['difference','sum','constant'],
         epsilon: float,
         unwrap_azimuth: bool,
         unwrapping_beta: float,
@@ -91,6 +91,7 @@ def streamlines(
     width_mode_c = {
         'difference' : c_uint8(0),
         'sum' : c_uint8(1),
+        'constant' : c_uint8(2)
     }[width_mode]
 
     # Now compute the streamlines:
