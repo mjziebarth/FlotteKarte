@@ -31,6 +31,12 @@ jobs:
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
           # Python installs:
           pip install matplotlib pyproj meson mebuex
+          # Install newer boost version (at least >= 1.79 required):
+          wget -q https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.bz2
+          mkdir boost-dl
+          tar --bzip2 -xf boost_1_85_0.tar.bz2 -C boost-dl
+          sudo rm -r /usr/include/boost
+          sudo cp -r boost-dl/boost_1_85_0/boost /usr/include
           # Install the package:
           pip install --user .
     - name: Lint with flake8

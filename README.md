@@ -27,6 +27,7 @@ The following software has to be installed:
  - SciPy
  - Meson
  - Ninja
+ - boost (>= 1.79)
 
 The following software will be automatically downloaded during Meson installation:
  - [ProjWrapCpp](https://github.com/mjziebarth/ProjWrapCpp)
@@ -37,8 +38,8 @@ shared library that is no longer available on the system. Recompiling
 FlotteKarte will be necessary. This will automatically be performed at
 import time if a failure to load the shared library is detected.
 
-For this reason, Meson and Ninja need to be available on the system if the
-PROJ library that FlotteKarte is linked to changes.
+For this reason, Meson, Ninja, and boost need to be available on the system if
+the PROJ library that FlotteKarte is linked to changes.
 
 If this package should be packaged for some system package manager, the file
 `flottekarte/extensions/cdll.py` would have to be adjusted, see comments
