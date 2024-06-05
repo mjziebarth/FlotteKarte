@@ -20,7 +20,8 @@
 import numpy as np
 from pyproj import Proj
 from numpy.typing import NDArray
-from .extensions.azimuth import azimuth_geographic_to_local_on_grid
+from .extensions.azimuth import azimuth_geographic_to_local_on_grid,\
+    unwrap_azimuth_field
 
 class TensorField2D:
     """
@@ -42,6 +43,8 @@ class TensorField2D:
     p0: NDArray
     p1: NDArray
 
+    unwrapped: bool
+
     def __init__(self,
             xmin: float,
             xmax: float,
@@ -55,7 +58,9 @@ class TensorField2D:
             geographic_azimuth: NDArray[np.float64] | None = None,
             projected_azimuth: NDArray[np.float64] | None = None,
             proj_str: str | None = None,
-            stencil_delta: float = 1e-5
+            stencil_delta: float = 1e-5,
+            unwrap_azimuth: bool = False,
+            unwrapping_beta: float = 1.5
         ):
         self.xmin = float(xmin)
         self.xmax = float(xmax)
@@ -87,6 +92,16 @@ class TensorField2D:
                 np.deg2rad(geographic_azimuth), inplace=True,
                 stencil_delta = float(stencil_delta)
             )
+
+        # If wished, unwrap the azimuth field:
+        if unwrap_azimuth:
+            alpha = unwrap_azimuth_field(
+                alpha, unwrapping_beta, inplace=True
+            )
+            self.unwrapped = True
+        else:
+            self.unwrapped = False
+
 
         self.alpha_rad = alpha
         self.p0 = np.ascontiguousarray(p0, dtype=np.double)

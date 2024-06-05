@@ -23,6 +23,7 @@
 #include <limits>
 #include <cmath>
 #include <../include/types.hpp>
+#include <../include/index.hpp>
 
 #ifndef FLOTTEKARTE_INTERPOLATE_HPP
 #define FLOTTEKARTE_INTERPOLATE_HPP
@@ -83,44 +84,37 @@ public:
  * --------------------------------------
  */
 template<typename Integer>
-struct TileIndex
+class TileIndex : public GridIndex<Integer>
 {
-    Integer i;
-    Integer j;
-    Integer ny;
-
+public:
     TileIndex(const xy_t& xy, double xmin, double xmax, Integer nx,
               double ymin, double ymax, Integer ny)
-      : i(std::floor((nx-1) * (xy.x - xmin) / (xmax - xmin))),
-        j(std::floor((ny-1) * (xy.y - ymin) / (ymax - ymin))),
-        ny(ny)
+      : GridIndex<Integer>(
+            std::min<Integer>(std::max<Integer>(
+                    std::floor((nx-1) * (xy.x - xmin) / (xmax - xmin)),
+                    0
+                ),
+                nx-1
+            ),
+            std::min<Integer>(std::max<Integer>(
+                    std::floor((ny-1) * (xy.y - ymin) / (ymax - ymin)),
+                    0
+                ),
+                ny-1
+            ),
+            ny
+        )
     {
-        if (i+1 >= nx || j >= ny)
+        if (xy.x > xmax || xy.y > ymax || xy.x < xmin || xy.y < ymin)
+            throw std::runtime_error("Coordinate out of bounds in TileIndex.");
+        if (GridIndex<Integer>::i + 1 > nx || GridIndex<Integer>::j+1 > ny)
             throw std::runtime_error("TileIndex corrupted.");
     }
 
-    Integer flat() const
-    {
-        return ny * i + j;
-    }
+    TileIndex(GridIndex<Integer>&& gid) : GridIndex<Integer>(gid)
+    {}
 
-    TileIndex next_y() const
-    {
-        return TileIndex(i, j+1, ny);
-    }
-
-    TileIndex next_x() const
-    {
-        return TileIndex(i+1, j, ny);
-    }
-
-    TileIndex next_xy() const
-    {
-        return TileIndex(i+1, j+1, ny);
-    }
-
-private:
-    TileIndex(Integer i, Integer j, Integer ny) : i(i), j(j), ny(ny)
+    TileIndex(const GridIndex<Integer>& gid) : GridIndex<Integer>(gid)
     {}
 };
 

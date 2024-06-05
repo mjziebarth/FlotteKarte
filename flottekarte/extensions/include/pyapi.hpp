@@ -4,7 +4,8 @@
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
  * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
- *                    Malte J. Ziebarth
+ *                    Malte J. Ziebarth,
+ *               2024 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -22,6 +23,7 @@
 
 #include <stdint.h>
 #include <cstddef>
+#include <cstdint>
 
 #ifndef FLOTTEKARTE_PYAPI_HPP
 #define FLOTTEKARTE_PYAPI_HPP
@@ -61,6 +63,11 @@ int azimuth_geographic_to_local_on_grid_inplace(
         double ymin, double ymax, size_t ny,
         double* azimuth_rad, size_t Nazi,
         double stencil_delta
+);
+
+int unwrap_azimuth_field(
+    double* angle, uint32_t nx, uint32_t ny, size_t Nmax,
+    double cost_beta
 );
 
 /*
@@ -119,6 +126,29 @@ int save_bounding_polygon(const void* struct_ptr, double* vertices,
  */
 int clean_bounding_polygon_struct(void* struct_ptr);
 
+
+
+/*
+ * Compute the streamline polygons.
+ */
+int compute_streamlines(
+        double xmin, double xmax, size_t nx,
+        double ymin, double ymax, size_t ny,
+        const double* z, size_t Nz,
+        double r, double ds_min,
+        double epsilon, uint8_t azimuth_is_full_circle,
+        size_t* struct_id
+);
+
+size_t get_streamline_polygon_count(size_t struct_id);
+
+size_t get_streamline_polygon_size(size_t struct_id, size_t poly_id);
+
+int save_streamline_polygon(
+        size_t struct_id, size_t poly_id, double* out_xy, size_t Nout
+);
+
+int delete_streamline_struct(size_t struct_id);
 
 }
 

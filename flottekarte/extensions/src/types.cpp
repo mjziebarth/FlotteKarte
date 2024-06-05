@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *               2024 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -42,6 +43,21 @@ xy_t xy_t::operator+(xy_t&& other) const
     other.x += x;
     other.y += y;
     return other;
+}
+
+xy_t xy_t::operator+(const xy_t& other) const
+{
+    return xy_t(x + other.x, y + other.y);
+}
+
+xy_t xy_t::operator-(const xy_t& other) const
+{
+    return xy_t(x - other.x, y - other.y);
+}
+
+double xy_t::dot(const xy_t& other) const
+{
+    return x * other.x + y * other.y;
 }
 
 } // end namespace

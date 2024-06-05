@@ -20,9 +20,9 @@
 
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional
+from typing import Literal
 from .cdll import _cdll
-from ctypes import c_double, c_size_t, c_char_p, POINTER
+from ctypes import c_double, c_size_t, c_char_p, c_uint32, POINTER
 
 
 def azimuth_geographic_to_local_on_grid(
@@ -70,3 +70,46 @@ def azimuth_geographic_to_local_on_grid(
         raise RuntimeError("Did not succeed to compute local azimuth.")
 
     return alpha
+
+
+def unwrap_azimuth_field(
+        azimuth_rad: NDArray[np.float64],
+        beta: float = 1.5,
+        Nmax: int | Literal['auto'] = 'auto',
+        inplace: bool = False
+    ):
+    """
+    Attempt to improve the quality of the azimuth field in terms
+    of a continuous vector field. This function aims to tackle the
+    issues appearing when defining azimuth only over a 180° range
+    instead of the full 360° range, and thereafter integrating over
+    the resulting vector field.
+    """
+
+    # Underlying working buffer. Ensure that it is of the correct shape
+    # and continuity:
+    alpha = np.array(
+        azimuth_rad, dtype=np.double,
+        order='C', copy = not inplace
+    )
+    if alpha.ndim != 2:
+        raise TypeError("alpha has to be two-dimensional.")
+
+    if Nmax == 'auto':
+        Nmax = alpha.size
+
+    nx_c = c_uint32(alpha.shape[0])
+    ny_c = c_uint32(alpha.shape[1])
+    Nmax_c = c_size_t(Nmax)
+    beta_c = c_double(beta)
+
+    res = _cdll.unwrap_azimuth_field(
+        alpha.ctypes.data_as(POINTER(c_double)), nx_c, ny_c, Nmax_c,
+        beta_c
+    )
+    if res != 0:
+        raise RuntimeError("The C++ backend of "
+            "unwrap_azimuth_field encountered a runtime error."
+        )
+
+    return azimuth_rad

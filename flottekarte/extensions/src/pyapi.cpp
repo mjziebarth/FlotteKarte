@@ -29,6 +29,8 @@
 #include <../include/tickfinder.hpp>
 #include <../include/grid.hpp>
 #include <../include/boundary.hpp>
+#include <../include/streamlines.hpp>
+#include <../include/azimuth.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -317,6 +319,27 @@ int azimuth_geographic_to_local_on_grid_inplace(
 	} catch (...) {
 		return 1;
 	}
+}
+
+
+int unwrap_azimuth_field(
+    double* angle, uint32_t nx, uint32_t ny, size_t Nmax,
+    double cost_beta
+)
+{
+	try {
+		flottekarte::unwrap_azimuth_field(
+			angle, nx, ny, Nmax, cost_beta
+		);
+	} catch (const std::exception& e){
+		std::cerr << "Error in unwrap_and_smooth_azimuth_field: "
+		          << e.what() << "\n";
+		return 1;
+	} catch (...) {
+		return 2;
+	}
+
+	return 0;
 }
 
 
@@ -626,5 +649,133 @@ int clean_bounding_polygon_struct(void* struct_ptr)
 	delete poly;
 
 	/* Success. */
+	return 0;
+}
+
+/******************************************************************************
+ *                   Computing the streamline polygons.                       *
+ ******************************************************************************/
+
+/* Save all streamline polygons in a map. */
+static size_t all_streamlines_id = 0;
+static std::unordered_map<size_t, std::vector<path_xy_t>> all_streamlines;
+
+
+int compute_streamlines(
+        double xmin, double xmax, size_t nx,
+        double ymin, double ymax, size_t ny,
+        const double* z, size_t Nz,
+        double r, double ds_min,
+        double epsilon, uint8_t azimuth_is_full_circle,
+        size_t* struct_id
+)
+{
+	auto nan_or_inf = [](double x) -> bool {
+		return std::isnan(x) || std::isinf(x);
+	};
+
+	/* Input sanity: */
+	if (Nz != 3 * nx * ny)
+		return 1;
+	if (!z)
+		return 2;
+	if (!struct_id)
+		return 3;
+	if (nan_or_inf(xmin) || nan_or_inf(xmax) || nan_or_inf(ymin)
+	    || nan_or_inf(ymax))
+		return 4;
+	if (xmin >= xmax || ymin >= ymax)
+		return 5;
+	if (r >= 0.25 * std::min(xmax-xmin, ymax - ymin))
+		// We will not actually have a visually pleasing amount of streamlines.
+		return 6;
+	if (nx < 2 || ny < 2)
+		return 7;
+
+	/* Get a free streamlines struct handle: */
+	size_t h = all_streamlines_id;
+
+
+	try {
+		all_streamlines.emplace(std::make_pair(
+			h,
+			flottekarte::streamlines(
+				xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, epsilon,
+				azimuth_is_full_circle > 0
+			)
+		));
+	} catch (const std::exception& e){
+		std::cerr << "exception: '" << e.what() << "'.\n" << std::flush;
+		return 8;
+	} catch (...) {
+		return 8;
+	}
+
+	/* Success, save and increment the handle id: */
+	*struct_id = h;
+	++all_streamlines_id;
+
+	return 0;
+}
+
+size_t get_streamline_polygon_count(size_t struct_id)
+{
+	auto it = all_streamlines.find(struct_id);
+	if (it == all_streamlines.end())
+		return 0;
+
+	return it->second.size();
+}
+
+size_t get_streamline_polygon_size(size_t struct_id, size_t poly_id)
+{
+	auto it = all_streamlines.find(struct_id);
+	if (it == all_streamlines.end())
+		return 0;
+
+	if (poly_id >= it->second.size())
+		return 0;
+
+	return it->second[poly_id].size();
+}
+
+int save_streamline_polygon(
+    size_t struct_id, size_t poly_id, double* out_xy, size_t Nout
+)
+{
+	if (!out_xy)
+		return 1;
+
+	auto it = all_streamlines.find(struct_id);
+	if (it == all_streamlines.end())
+		return 2;
+
+	if (poly_id >= it->second.size())
+		return 3;
+
+	/* Now we found the correct polygon. Ensure that the buffer suffices: */
+	const path_xy_t& path = it->second[poly_id];
+	if (2*path.size() != Nout)
+		return 4;
+
+	/* Now output the coordinates: */
+	for (const xy_t& xy : path){
+		*out_xy = xy.x;
+		++out_xy;
+		*out_xy = xy.y;
+		++out_xy;
+	}
+
+	return 0;
+}
+
+int delete_streamline_struct(size_t struct_id)
+{
+	auto it = all_streamlines.find(struct_id);
+	if (it == all_streamlines.end())
+		return 1;
+
+	all_streamlines.erase(it);
+
 	return 0;
 }

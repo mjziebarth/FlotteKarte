@@ -13,6 +13,7 @@ include = [
 dependencies = [dependency('proj'),dependency('openmp'),libprojwrap_dep]
 
 sources_fk = files(
+    '../../flottekarte/extensions/src/streamlines.cpp',
     '../../flottekarte/extensions/src/interpolate.cpp',
     '../../flottekarte/extensions/src/types.cpp',
 )

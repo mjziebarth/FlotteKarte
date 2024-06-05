@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *               2024 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -75,8 +76,13 @@ public:
 	}
 
 	xy_t operator+(xy_t&& other) const;
+	xy_t operator+(const xy_t& other) const;
+
+	xy_t operator-(const xy_t& other) const;
 
 	xy_t& operator+=(const xy_t&);
+
+	double dot(const xy_t& other) const;
 };
 
 typedef std::vector<geo_degrees_t> path_geo_t;

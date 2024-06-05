@@ -2,7 +2,8 @@
 #
 # Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
 #
-# Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+# Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+#               2024 Technische Universität München
 #
 # Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
 # the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -18,6 +19,7 @@
 # limitations under the Licence.
 
 import numpy as np
+from numpy.typing import NDArray
 from typing import Union, Tuple, Optional, Literal
 from pyproj import Proj
 from matplotlib.axes import Axes
@@ -28,7 +30,9 @@ from .axes import generate_axes_grid
 from .grid import plot_grid
 from .data import GeoJSON
 from .extensions.boundary import map_boundary
+from .extensions.streamlines import streamlines
 from .extent import automatic_map_extents
+from .tensor import TensorField2D
 
 
 class Map:
@@ -285,3 +289,35 @@ class Map:
             self.ax.add_collection(polygons)
         else:
             raise TypeError("`dataset` must be a GeoJSON object.")
+
+
+    def tensor_streamlines(self,
+            t: TensorField2D,
+            r: float = 5e3,
+            ds_min: float = 1e3,
+            epsilon: float = 1e-3,
+            unwrap_azimuth: bool | Literal['auto'] = 'auto',
+            unwrapping_beta: float = 1.5,
+            unwrapping_Nmax: int | Literal['auto'] = 'auto'
+        ):
+        """
+        Visualize a tensor using streamlines.
+        """
+        # The heuristic uses just the number of points:
+        if unwrapping_Nmax == 'auto':
+            unwrapping_Nmax = t.nx * t.ny
+
+        if unwrap_azimuth == 'auto':
+            unwrap_azimuth = not t.unwrapped
+
+        # Compute streamlines:
+        streamline_polys = streamlines(
+            t.xmin, t.xmax, t.nx, t.ymin, t.ymax, t.ny,
+            t.alpha_rad, t.p0, t.p1, r, ds_min, epsilon,
+            unwrap_azimuth, unwrapping_beta, unwrapping_Nmax
+        )
+
+        # Plot them:
+        for poly in streamline_polys:
+            # TODO: Currently these are just lines...
+            self.ax.plot(*poly.T)
