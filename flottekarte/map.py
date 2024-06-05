@@ -24,6 +24,7 @@ from typing import Union, Tuple, Optional, Literal
 from pyproj import Proj
 from matplotlib.axes import Axes
 from matplotlib.patches import Polygon
+from matplotlib.collections import PolyCollection
 
 
 # Import of functionality from other source files of this package:
@@ -302,7 +303,11 @@ class Map:
             epsilon: float = 1e-3,
             unwrap_azimuth: bool | Literal['auto'] = 'auto',
             unwrapping_beta: float = 1.5,
-            unwrapping_Nmax: int | Literal['auto'] = 'auto'
+            unwrapping_Nmax: int | Literal['auto'] = 'auto',
+            edgecolor: str = 'k',
+            facecolor: str = 'w',
+            linewidth: float = 0.8,
+            **kwargs
         ):
         """
         Visualize a tensor using streamlines.
@@ -336,7 +341,15 @@ class Map:
         )
 
         # Plot them:
-        for poly in streamline_polys:
-            self.ax.add_patch(
-                Polygon(poly, facecolor='w', edgecolor='k', linewidth=0.8)
+        h = self.ax.add_collection(
+            PolyCollection(
+                streamline_polys,
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                linewidth=linewidth,
+                **kwargs
             )
+        )
+
+        # Return the handle:
+        return h
