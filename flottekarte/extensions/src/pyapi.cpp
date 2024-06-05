@@ -666,7 +666,7 @@ int compute_streamlines(
         double ymin, double ymax, size_t ny,
         const double* z, size_t Nz,
         double r, double ds_min,
-        double epsilon, uint8_t azimuth_is_full_circle,
+        double epsilon,
         size_t* struct_id
 )
 {
@@ -700,8 +700,7 @@ int compute_streamlines(
 		all_streamlines.emplace(std::make_pair(
 			h,
 			flottekarte::streamlines(
-				xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, epsilon,
-				azimuth_is_full_circle > 0
+				xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, epsilon
 			)
 		));
 	} catch (const std::exception& e){

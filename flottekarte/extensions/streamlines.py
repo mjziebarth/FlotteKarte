@@ -21,7 +21,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Optional
 from .cdll import _cdll
-from ctypes import c_double, POINTER, c_char_p, c_ulong, c_size_t, byref, c_uint8
+from ctypes import c_double, POINTER, c_char_p, c_ulong, c_size_t, byref
 from .azimuth import unwrap_azimuth_field
 
 
@@ -90,7 +90,7 @@ def streamlines(
     res = _cdll.compute_streamlines(
         xmin_c, xmax_c, nx_c, ymin_c, ymax_c, ny_c,
         z.ctypes.data_as(POINTER(c_double)), c_size_t(z.size),
-        r_c, ds_min_c, epsilon_c, c_uint8(0), byref(struct_id)
+        r_c, ds_min_c, epsilon_c, byref(struct_id)
     )
     if res != 0:
         raise RuntimeError("Computing streamlines failed. Code: "

@@ -36,7 +36,7 @@ streamlines(
     double ymin, double ymax, size_t ny,
     const double* z,
     double r, double ds_min,
-    double epsilon, bool azimuth_is_full_circle
+    double epsilon
 )
 {
 
@@ -81,41 +81,12 @@ streamlines(
         xy_t start = start_points[i];
 
 
-        /* The vector field.
-         * Here we might have to perform some tricks.
-         * If the azimuth is only half range (180°), we might have 180°
-         * jump discontinuities in the orientation. */
-        std::array<xy_t, 12> direction_memory;
-        uint_fast8_t mem_id = 0;
-        xy_t last_direction;
-        {
-            double last_alpha = interp(start)[0];
-            last_direction.x = std::sin(last_alpha);
-            last_direction.y = std::cos(last_alpha);
-        }
+        /* The vector field. */
         auto direction
-        = [azimuth_is_full_circle, &interp, &direction_memory, &mem_id]
-        (const xy_t& p) -> xy_t
+        = [&interp](const xy_t& p) -> xy_t
         {
-            std::array<double,3> vf_p = interp(p);
-            double alpha = vf_p[0];
-            xy_t dir(std::sin(alpha), std::cos(alpha));
-            /* If the new direction is rather opposite the old direction,
-             * and the azimuth is not given in full range (i.e. we might have
-             * jump discontinuities), flip the direction here: */
-            if (!azimuth_is_full_circle){
-                xy_t avg_dir(std::accumulate(
-                    direction_memory.cbegin(), direction_memory.cend(),
-                    xy_t(0.0, 0.0)
-                ));
-                if (avg_dir.dot(dir) < 0.0){
-                    dir *= -1.0;
-                }
-            }
-            direction_memory[mem_id++] = dir;
-            if (mem_id == 12)
-                mem_id = 0;
-            return dir;
+            double alpha = interp(p)[0];
+            return xy_t(std::sin(alpha), std::cos(alpha));
         };
 
         /* Integrate: */

@@ -136,7 +136,7 @@ int compute_streamlines(
         double ymin, double ymax, size_t ny,
         const double* z, size_t Nz,
         double r, double ds_min,
-        double epsilon, uint8_t azimuth_is_full_circle,
+        double epsilon,
         size_t* struct_id
 );
 

@@ -33,7 +33,7 @@ streamlines(
     double xmin, double xmax, size_t nx,
     double ymin, double ymax, size_t ny,
     const double* z, double r, double ds_min,
-    double epsilon, bool azimuth_is_full_circle
+    double epsilon
 );
 
 
