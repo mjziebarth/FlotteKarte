@@ -30,6 +30,7 @@
 #include <vector>
 #include <queue>
 #include <limits>
+#include <numbers>
 #include <stddef.h>
 
 namespace flottekarte {
