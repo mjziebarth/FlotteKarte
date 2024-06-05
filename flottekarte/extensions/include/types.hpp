@@ -83,6 +83,8 @@ public:
 	xy_t& operator+=(const xy_t&);
 
 	double dot(const xy_t& other) const;
+
+	double norm() const;
 };
 
 typedef std::vector<geo_degrees_t> path_geo_t;

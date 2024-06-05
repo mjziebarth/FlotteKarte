@@ -177,6 +177,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Meson as runtime dependency (not only install).
 
 #### Added
+- Add `TensorField2D` representation of two-dimensional tensor fields
+- Add streamline plot to visualize two-dimensional tensor fields.
 - C++ internals: add bilinear interpolation, azimuth conversion.
 - Add pytest Github workflow.
 

@@ -28,12 +28,19 @@
 
 namespace flottekarte {
 
+enum width_mode_t : uint8_t
+{
+    DIFFERENCE = 0,
+    SUM = 1
+};
+
 std::vector<path_xy_t>
 streamlines(
     double xmin, double xmax, size_t nx,
     double ymin, double ymax, size_t ny,
     const double* z, double r, double ds_min,
-    double epsilon
+    double width_scale, double epsilon,
+    width_mode_t width_mode
 );
 
 

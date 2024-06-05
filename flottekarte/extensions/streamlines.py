@@ -19,9 +19,10 @@
 
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional
+from typing import Literal
 from .cdll import _cdll
-from ctypes import c_double, POINTER, c_char_p, c_ulong, c_size_t, byref
+from ctypes import c_double, POINTER, c_char_p, c_ulong, c_size_t, \
+    c_uint8, byref
 from .azimuth import unwrap_azimuth_field
 
 
@@ -37,6 +38,8 @@ def streamlines(
         p1: NDArray[np.float64],
         r: float,
         ds_min: float,
+        width_scale: float,
+        width_mode: Literal['difference','sum'],
         epsilon: float,
         unwrap_azimuth: bool,
         unwrapping_beta: float,
@@ -63,7 +66,7 @@ def streamlines(
     # Numpy arrays and underlying buffers. Ensure that they are of the
     # correct shape.
     p0 = np.ascontiguousarray(p0, dtype=np.double)
-    p1 = np.ascontiguousarray(p0, dtype=np.double)
+    p1 = np.ascontiguousarray(p1, dtype=np.double)
 
     if np.shape(alpha) != shape:
         raise RuntimeError("Shape of alpha must be (nx,ny).")
@@ -84,13 +87,19 @@ def streamlines(
     r_c = c_double(r)
     ds_min_c = c_double(ds_min)
     epsilon_c = c_double(epsilon)
+    width_scale_c = c_double(width_scale)
+    width_mode_c = {
+        'difference' : c_uint8(0),
+        'sum' : c_uint8(1),
+    }[width_mode]
 
     # Now compute the streamlines:
     struct_id = c_size_t(0)
     res = _cdll.compute_streamlines(
         xmin_c, xmax_c, nx_c, ymin_c, ymax_c, ny_c,
         z.ctypes.data_as(POINTER(c_double)), c_size_t(z.size),
-        r_c, ds_min_c, epsilon_c, byref(struct_id)
+        r_c, ds_min_c, width_scale_c, epsilon_c, width_mode_c,
+        byref(struct_id)
     )
     if res != 0:
         raise RuntimeError("Computing streamlines failed. Code: "

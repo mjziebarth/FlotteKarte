@@ -136,7 +136,8 @@ int compute_streamlines(
         double ymin, double ymax, size_t ny,
         const double* z, size_t Nz,
         double r, double ds_min,
-        double epsilon,
+        double width_scale,
+        double epsilon, uint8_t width_mode,
         size_t* struct_id
 );
 

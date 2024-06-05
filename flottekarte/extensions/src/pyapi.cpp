@@ -666,7 +666,8 @@ int compute_streamlines(
         double ymin, double ymax, size_t ny,
         const double* z, size_t Nz,
         double r, double ds_min,
-        double epsilon,
+        double width_scale,
+        double epsilon, uint8_t width_mode,
         size_t* struct_id
 )
 {
@@ -700,7 +701,8 @@ int compute_streamlines(
 		all_streamlines.emplace(std::make_pair(
 			h,
 			flottekarte::streamlines(
-				xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, epsilon
+				xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, width_scale,
+				epsilon, static_cast<flottekarte::width_mode_t>(width_mode)
 			)
 		));
 	} catch (const std::exception& e){

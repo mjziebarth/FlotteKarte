@@ -23,6 +23,7 @@ from numpy.typing import NDArray
 from typing import Union, Tuple, Optional, Literal
 from pyproj import Proj
 from matplotlib.axes import Axes
+from matplotlib.patches import Polygon
 
 
 # Import of functionality from other source files of this package:
@@ -295,6 +296,9 @@ class Map:
             t: TensorField2D,
             r: float = 5e3,
             ds_min: float = 1e3,
+            width_scale: float | Literal['auto'] = 'auto',
+            width_margin_factor: float = 2.0,
+            width_mode: Literal['difference','sum'] = 'difference',
             epsilon: float = 1e-3,
             unwrap_azimuth: bool | Literal['auto'] = 'auto',
             unwrapping_beta: float = 1.5,
@@ -310,14 +314,27 @@ class Map:
         if unwrap_azimuth == 'auto':
             unwrap_azimuth = not t.unwrapped
 
+        assert width_mode in ('difference','sum')
+
+        if width_scale == 'auto':
+            # Compute the maximum according to width mode:
+            if width_mode == 'difference':
+                width_scale = width_margin_factor \
+                    * np.nanmax(np.abs((t.p0 - t.p1)))
+            elif width_mode == 'sum':
+                width_scale = width_margin_factor \
+                    * np.nanmax(np.abs(t.p0 + t.p1))
+
         # Compute streamlines:
         streamline_polys = streamlines(
             t.xmin, t.xmax, t.nx, t.ymin, t.ymax, t.ny,
-            t.alpha_rad, t.p0, t.p1, r, ds_min, epsilon,
+            t.alpha_rad, t.p0, t.p1, r, ds_min,
+            width_scale, width_mode, epsilon,
             unwrap_azimuth, unwrapping_beta, unwrapping_Nmax
         )
 
         # Plot them:
         for poly in streamline_polys:
-            # TODO: Currently these are just lines...
-            self.ax.plot(*poly.T)
+            self.ax.add_patch(
+                Polygon(poly, facecolor='w', edgecolor='k', linewidth=0.8)
+            )

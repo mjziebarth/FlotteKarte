@@ -60,4 +60,9 @@ double xy_t::dot(const xy_t& other) const
     return x * other.x + y * other.y;
 }
 
+double xy_t::norm() const
+{
+    return std::sqrt(x*x + y*y);
+}
+
 } // end namespace
