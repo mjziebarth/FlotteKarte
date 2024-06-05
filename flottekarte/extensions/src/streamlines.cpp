@@ -40,7 +40,7 @@ streamlines(
 )
 {
 
-    constexpr uint16_t STARTING_POINTS = 100;
+    constexpr uint16_t STARTING_POINTS = 512;
     constexpr uint32_t Nmin = 5;
 
     const uint32_t Nmax = 100000;
