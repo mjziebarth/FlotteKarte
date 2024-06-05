@@ -311,7 +311,7 @@ int azimuth_geographic_to_local_on_grid_inplace(
 			);
 
 			/* Find the local azimuth of that vector: */
-			azimuth_rad[k] = std::atan(azi_dir.x / azi_dir.y);
+			azimuth_rad[k] = std::atan2(azi_dir.x, azi_dir.y);
 		}
 
 		/* If all Nazi are converted, we're done! */
