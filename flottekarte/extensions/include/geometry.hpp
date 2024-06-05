@@ -67,7 +67,7 @@ struct access<flottekarte::xy_t, Index> {
 
 }}} // namespace boost::geometry::traits
 
-#include <boost/geometry/strategies/cartesian.hpp>
+#include <boost/geometry/strategies/strategies.hpp>
 #include <boost/geometry/geometries/segment.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/algorithms/closest_points.hpp>
