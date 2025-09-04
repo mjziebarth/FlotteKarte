@@ -3,7 +3,7 @@
  *
  * Authors: Malte J. Ziebarth (malte.ziebarth@tum.de)
  *
- * Copyright (C) 2024 Technische Universität München
+ * Copyright (C) 2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -49,8 +49,15 @@ public:
     size_t nx;
     size_t ny;
 
-    grid2d_t(double xmin, double xmax, size_t nx, double ymin, double ymax,
-             size_t ny, const double* z);
+    grid2d_t(
+        double xmin,
+        double xmax,
+        size_t nx,
+        double ymin,
+        double ymax,
+        size_t ny,
+        const double* z
+    );
 
 private:
     std::vector<double> data;
@@ -71,8 +78,15 @@ public:
     size_t nx;
     size_t ny;
 
-    grid2d_t(double xmin, double xmax, size_t nx, double ymin, double ymax,
-             size_t ny, const double* z);
+    grid2d_t(
+        double xmin,
+        double xmax,
+        size_t nx,
+        double ymin,
+        double ymax,
+        size_t ny,
+        const double* z
+    );
 
 public:
     const double* z;
@@ -87,8 +101,15 @@ template<typename Integer>
 class TileIndex : public GridIndex<Integer>
 {
 public:
-    TileIndex(const xy_t& xy, double xmin, double xmax, Integer nx,
-              double ymin, double ymax, Integer ny)
+    TileIndex(
+        const xy_t& xy,
+        double xmin,
+        double xmax,
+        Integer nx,
+        double ymin,
+        double ymax,
+        Integer ny
+    )
       : GridIndex<Integer>(
             std::min<Integer>(std::max<Integer>(
                     std::floor((nx-1) * (xy.x - xmin) / (xmax - xmin)),
@@ -127,8 +148,12 @@ class LinearGrid2DInterpolator
 {
 public:
     LinearGrid2DInterpolator(
-        double xmin, double xmax, size_t nx,
-        double ymin, double ymax, size_t ny,
+        double xmin,
+        double xmax,
+        size_t nx,
+        double ymin,
+        double ymax,
+        size_t ny,
         const double* z
     ) : grid(xmin, xmax, nx, ymin, ymax, ny, z)
     {

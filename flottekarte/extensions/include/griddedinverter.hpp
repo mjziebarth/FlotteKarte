@@ -4,7 +4,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *               2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -39,12 +40,12 @@ typedef boost::geometry::index::rtree<rtvalue, rtbuild> rtree;
 
 class GriddedInverter {
 public:
-	GriddedInverter(const ProjWrapper& proj, size_t nlon, size_t nlat);
+    GriddedInverter(const ProjWrapper& proj, size_t nlon, size_t nlat);
 
-	geo_t operator()(const xy_t& xy) const;
+    geo_t operator()(const xy_t& xy) const;
 
 private:
-	rtree tree;
+    rtree tree;
 };
 
 }

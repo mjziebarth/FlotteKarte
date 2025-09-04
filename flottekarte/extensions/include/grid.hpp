@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *               2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -28,22 +29,29 @@
 namespace flottekarte {
 
 struct cut_t {
-	xy_t point;
-	tick_t tick_type;
-	double coordinate;
+    xy_t point;
+    tick_t tick_type;
+    double coordinate;
 };
 
 struct geo_grid_t {
-	std::vector<path_xy_t> paths;
-	std::vector<cut_t> cuts;
+    std::vector<path_xy_t> paths;
+    std::vector<cut_t> cuts;
 };
 
 
 geo_grid_t
-generate_grid_lines(const ProjWrapper& proj, double xmin, double xmax,
-                    double ymin, double ymax, int tick_spacing_degree,
-                    double bisection_offset, double minimum_node_distance,
-                    double max_lat);
+generate_grid_lines(
+    const ProjWrapper& proj,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax,
+    int tick_spacing_degree,
+    double bisection_offset,
+    double minimum_node_distance,
+    double max_lat
+);
 
 
 }

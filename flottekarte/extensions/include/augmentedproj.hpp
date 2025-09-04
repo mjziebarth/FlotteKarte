@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Malte J. Ziebarth
+ * Copyright (C) 2022 Malte J. Ziebarth,
+ *               2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -30,30 +31,30 @@ namespace flottekarte {
 
 class AugmentedProj {
 public:
-	AugmentedProj(const char* proj_str);
+    AugmentedProj(const char* proj_str);
 
-	AugmentedProj(const AugmentedProj& other) = default;
-	AugmentedProj(AugmentedProj&& other) = default;
+    AugmentedProj(const AugmentedProj& other) = default;
+    AugmentedProj(AugmentedProj&& other) = default;
 
-	void project(double lam, double phi, double& x, double& y) const;
-	xy_t project(double lam, double phi) const;
-	xy_t project(const geo_t& lola) const;
-	xy_t project(const geo_degrees_t& lola) const;
+    void project(double lam, double phi, double& x, double& y) const;
+    xy_t project(double lam, double phi) const;
+    xy_t project(const geo_t& lola) const;
+    xy_t project(const geo_degrees_t& lola) const;
 
-	geo_t inverse(const xy_t& xy_t) const;
-	void inverse(double x, double y, double& lam, double& phi) const;
+    geo_t inverse(const xy_t& xy_t) const;
+    void inverse(double x, double y, double& lam, double& phi) const;
 
-	double a() const;
-	double f() const;
+    double a() const;
+    double f() const;
 
-	const ProjWrapper& wrapper() const;
+    const ProjWrapper& wrapper() const;
 
 private:
-	const ProjWrapper proj;
-	const bool has_inverse;
-	mutable std::shared_ptr<GriddedInverter> inverter;
+    const ProjWrapper proj;
+    const bool has_inverse;
+    mutable std::shared_ptr<GriddedInverter> inverter;
 
-	geo_t inverse_gd(const xy_t& xy) const;
+    geo_t inverse_gd(const xy_t& xy) const;
 
 };
 

@@ -4,7 +4,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Malte J. Ziebarth
+ * Copyright (C) 2022 Malte J. Ziebarth,
+ *               2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -28,10 +29,17 @@
 
 namespace flottekarte {
 
-void bounding_polygon(const AugmentedProj&  proj, double xmin, double xmax,
-                      double ymin, double ymax, double atol,
-                      double bisection_offset, double minimum_node_distance,
-                      path_xy_t& poly);
+void bounding_polygon(
+    const AugmentedProj& proj,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax,
+    double atol,
+    double bisection_offset,
+    double minimum_node_distance,
+    path_xy_t& poly
+);
 
 }
 

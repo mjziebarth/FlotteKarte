@@ -4,7 +4,7 @@
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
  * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
- *               2024 Technische Universität München
+ *          2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -42,60 +42,60 @@ using projwrapper::ProjError;
 class xy_t : public projwrapper::xy_t
 {
 public:
-	xy_t(double x, double y) : projwrapper::xy_t(x, y)
-	{}
+    xy_t(double x, double y) : projwrapper::xy_t(x, y)
+    {}
 
-	xy_t() = default;
-	xy_t(xy_t&&) = default;
-	xy_t(const xy_t&) = default;
+    xy_t() = default;
+    xy_t(xy_t&&) = default;
+    xy_t(const xy_t&) = default;
 
-	xy_t(projwrapper::xy_t&& xy);
-	xy_t(const projwrapper::xy_t& xy);
+    xy_t(projwrapper::xy_t&& xy);
+    xy_t(const projwrapper::xy_t& xy);
 
-	xy_t& operator=(const xy_t& other) = default;
+    xy_t& operator=(const xy_t& other) = default;
 
-	template<
-		typename number,
-		typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
-	>
-	xy_t operator*(number n) const
-	{
-		return res(n*x, n*y);
-	}
+    template<
+        typename number,
+        typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+    >
+    xy_t operator*(number n) const
+    {
+        return res(n*x, n*y);
+    }
 
 
-	template<
-		typename number,
-		typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
-	>
-	xy_t& operator*=(number n)
-	{
-		x *= n;
-		y *= n;
-		return *this;
-	}
+    template<
+        typename number,
+        typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+    >
+    xy_t& operator*=(number n)
+    {
+        x *= n;
+        y *= n;
+        return *this;
+    }
 
-	xy_t operator+(xy_t&& other) const;
-	xy_t operator+(const xy_t& other) const;
+    xy_t operator+(xy_t&& other) const;
+    xy_t operator+(const xy_t& other) const;
 
-	xy_t operator-(const xy_t& other) const;
+    xy_t operator-(const xy_t& other) const;
 
-	xy_t& operator+=(const xy_t&);
+    xy_t& operator+=(const xy_t&);
 
-	double dot(const xy_t& other) const;
+    double dot(const xy_t& other) const;
 
-	double norm() const;
+    double norm() const;
 };
 
 typedef std::vector<geo_degrees_t> path_geo_t;
 typedef std::vector<xy_t> path_xy_t;
 
 enum axis_t {
-	AX_BOT=0, AX_TOP=1, AX_LEFT=2, AX_RIGHT=3
+    AX_BOT=0, AX_TOP=1, AX_LEFT=2, AX_RIGHT=3
 };
 
 enum tick_t {
-	TICK_LON=0, TICK_LAT=1, TICK_NONE=2
+    TICK_LON=0, TICK_LAT=1, TICK_NONE=2
 };
 
 
@@ -105,23 +105,23 @@ enum tick_t {
  * Further arithmetic operators:
  */
 template<
-	typename number,
-	typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+    typename number,
+    typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
 >
 xy_t operator*(number n, xy_t&& xy)
 {
-	xy.x *= n;
-	xy.y *= n;
-	return xy;
+    xy.x *= n;
+    xy.y *= n;
+    return xy;
 }
 
 template<
-	typename number,
-	typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
+    typename number,
+    typename std::enable_if<std::is_arithmetic_v<number>,int>::type = 0
 >
 xy_t operator*(number n, const xy_t& xy)
 {
-	return xy_t(n*xy.x, n*xy.y);
+    return xy_t(n*xy.x, n*xy.y);
 }
 
 }

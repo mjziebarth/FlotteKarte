@@ -4,7 +4,7 @@
  *
  * Authors: Malte J. Ziebarth (malte.ziebarth@tum.de)
  *
- * Copyright (C) 2024 Technische Universität München
+ * Copyright (C) 2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -41,7 +41,9 @@ typedef GridIndex<uint32_t> index_t;
 static xy_t global_mean_velocity(
     const double* angle,
     const std::vector<int8_t>& sign,
-    const size_t nx, const size_t ny)
+    const size_t nx,
+    const size_t ny
+)
 {
     /*
      * Computes the global mean velocity.
@@ -116,8 +118,11 @@ static double cost_contribution(
 
 
 void unwrap_azimuth_field(
-        double* angle, uint32_t nx, uint32_t ny, size_t Nmax,
-        double cost_beta
+    double* angle,
+    uint32_t nx,
+    uint32_t ny,
+    size_t Nmax,
+    double cost_beta
 )
 {
     /*

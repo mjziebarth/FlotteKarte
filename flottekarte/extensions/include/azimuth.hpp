@@ -4,7 +4,7 @@
  *
  * Authors: Malte J. Ziebarth (malte.ziebarth@tum.de)
  *
- * Copyright (C) 2024 Technische Universität München
+ * Copyright (C) 2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -29,7 +29,10 @@
 namespace flottekarte {
 
 void unwrap_azimuth_field(
-    double* angle, uint32_t nx, uint32_t ny, size_t Nmax,
+    double* angle,
+    uint32_t nx,
+    uint32_t ny,
+    size_t Nmax,
     double cost_beta
 );
 

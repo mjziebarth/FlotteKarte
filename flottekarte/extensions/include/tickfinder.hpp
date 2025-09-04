@@ -4,7 +4,8 @@
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
  * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
- *                    Malte J. Ziebarth
+ *                    Malte J. Ziebarth,
+ *               2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -30,17 +31,20 @@
 namespace flottekarte {
 
 struct segment_tick_t {
-	size_t segment;
-	geo_degrees_t tick;
+    size_t segment;
+    geo_degrees_t tick;
 
-	segment_tick_t() = default;
+    segment_tick_t() = default;
 
-	segment_tick_t(size_t segment, double lon, double lat);
+    segment_tick_t(size_t segment, double lon, double lat);
 };
 
 std::vector<segment_tick_t>
-compute_ticks(const AugmentedProj&, tick_t,
-              const path_xy_t&, double tick_spacing);
+compute_ticks(
+    const AugmentedProj&, tick_t,
+    const path_xy_t&,
+    double tick_spacing
+);
 
 }
 

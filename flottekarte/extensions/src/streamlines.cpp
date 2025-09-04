@@ -3,7 +3,7 @@
  *
  * Authors: Malte J. Ziebarth (malte.ziebarth@tum.de)
  *
- * Copyright (C) 2024 Technische Universität München
+ * Copyright (C) 2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -106,10 +106,16 @@ static path_xy_t line_buffer(
  */
 std::vector<path_xy_t>
 streamlines(
-    double xmin, double xmax, size_t nx,
-    double ymin, double ymax, size_t ny,
+    double xmin,
+    double xmax,
+    size_t nx,
+    double ymin,
+    double ymax,
+    size_t ny,
     const double* z,
-    double r, double ds_min, double width_scale,
+    double r,
+    double ds_min,
+    double width_scale,
     double epsilon,
     width_mode_t width_mode
 )

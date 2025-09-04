@@ -3,7 +3,8 @@
  *
  * Authors: Malte J. Ziebarth (ziebarth@gfz-potsdam.de)
  *
- * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam
+ * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
+ *          2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -26,18 +27,31 @@
 
 namespace flottekarte {
 
-xy_t boundary_intersection(const xy_t& out, const xy_t& in, double xmin,
-                           double xmax, double ymin, double ymax);
+xy_t boundary_intersection(
+    const xy_t& out,
+    const xy_t& in,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax
+);
 
 struct refined_path_t {
-	std::vector<path_xy_t> segments;
-	std::vector<xy_t> cuts;
+    std::vector<path_xy_t> segments;
+    std::vector<xy_t> cuts;
 };
 
 refined_path_t
-crop_and_refine(const path_geo_t& geo_path, const ProjWrapper& proj,
-                double xmin, double xmax, double ymin, double ymax,
-                double bisection_offset, double minimum_node_distance);
+crop_and_refine(
+    const path_geo_t& geo_path,
+    const ProjWrapper& proj,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax,
+    double bisection_offset,
+    double minimum_node_distance
+);
 
 
 

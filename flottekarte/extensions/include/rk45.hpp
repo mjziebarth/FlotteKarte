@@ -3,7 +3,7 @@
  *
  * Authors: Malte J. Ziebarth (malte.ziebarth@tum.de)
  *
- * Copyright (C) 2024 Technische Universität München
+ * Copyright (C) 2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -174,8 +174,13 @@ constexpr double d_te(uint_fast8_t k)
 
 } // namespace rk45
 
-template<int direction, typename fun_t, typename exit_cond_t,
-         typename step_index_t, bool prevent_self_intersections=true>
+template<
+    int direction,
+    typename fun_t,
+    typename exit_cond_t,
+    typename step_index_t,
+    bool prevent_self_intersections=true
+>
 void
 forward_rk45(
     fun_t function,

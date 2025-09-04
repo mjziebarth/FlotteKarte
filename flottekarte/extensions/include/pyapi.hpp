@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2022 Deutsches GeoForschungsZentrum Potsdam,
  *                    Malte J. Ziebarth,
- *               2024 Technische Universität München
+ *          2024-2025 Technische Universität München
  *
  * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -30,43 +30,79 @@
 
 extern "C" {
 
-void project_data(const char* proj_str, unsigned long Npoints,
-                  const double* lon, const double* lat,
-                  double* xy);
+void project_data(
+    const char* proj_str,
+    unsigned long Npoints,
+    const double* lon,
+    const double* lat,
+    double* xy
+);
 
-void inverse_project_data(const char* proj_str, unsigned long Npoints,
-                          const double* x, const double* y,
-                          double* xy);
+void inverse_project_data(
+    const char* proj_str,
+    unsigned long Npoints,
+    const double* x,
+    const double* y,
+    double* xy
+);
 
-int inverse_project_data_optimize(const char* proj_str, unsigned long Npoints,
-                                  const double* x, const double* y,
-                                  double* xy);
+int inverse_project_data_optimize(
+    const char* proj_str,
+    unsigned long Npoints,
+    const double* x,
+    const double* y,
+    double* xy
+);
 
-int gradients_east_north(const char* proj_str, unsigned long Npoints,
-                         const double* lon, const double* lat,
-                         double* gradient_east, double* gradient_north,
-                         double stencil_delta);
+int gradients_east_north(
+    const char* proj_str,
+    unsigned long Npoints,
+    const double* lon,
+    const double* lat,
+    double* gradient_east,
+    double* gradient_north,
+    double stencil_delta
+);
 
-int scale_factors(const char* proj_str, unsigned long Npoints,
-                  const double* lon, const double* lat,
-                  double* kh, double stencil_delta);
+int scale_factors(
+    const char* proj_str,
+    unsigned long Npoints,
+    const double* lon,
+    const double* lat,
+    double* kh,
+    double stencil_delta
+);
 
-int compute_axes_ticks(const char* proj_str, size_t Nseg,
-                       const double* vertices, double tick_spacing_degree,
-                       unsigned int max_ticks, unsigned int* segments,
-                       double* tick_vertices, unsigned char* which_ticks,
-                       unsigned int* Nticks);
+int compute_axes_ticks(
+    const char* proj_str,
+    size_t Nseg,
+    const double* vertices,
+    double tick_spacing_degree,
+    unsigned int max_ticks,
+    unsigned int* segments,
+    double* tick_vertices,
+    unsigned char* which_ticks,
+    unsigned int* Nticks
+);
 
 int azimuth_geographic_to_local_on_grid_inplace(
-        const char* proj_str,
-        double xmin, double xmax, size_t nx,
-        double ymin, double ymax, size_t ny,
-        double* azimuth_rad, size_t Nazi,
-        double stencil_delta
+    const char* proj_str,
+    double xmin,
+    double xmax,
+    size_t nx,
+    double ymin,
+    double ymax,
+    size_t ny,
+    double* azimuth_rad,
+    size_t Nazi,
+    double stencil_delta
 );
 
 int unwrap_azimuth_field(
-    double* angle, uint32_t nx, uint32_t ny, size_t Nmax,
+    double* angle,
+    uint32_t nx,
+    uint32_t ny,
+    size_t Nmax,
     double cost_beta
 );
 
@@ -83,18 +119,32 @@ int unwrap_azimuth_field(
  * last call is omitted, a memory leak will occur. If this is called a second
  * time, deallocated memory will be accessed.
  */
-int compute_grid_lines(const char* proj_str, double xmin, double xmax,
-                       double ymin, double ymax, int tick_spacing_degree,
-                       double bisection_offset, double minimum_node_distance,
-                       double max_lat, void** struct_ptr, size_t* Npath,
-                       size_t* Ncut);
+int compute_grid_lines(
+    const char* proj_str,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax,
+    int tick_spacing_degree,
+    double bisection_offset,
+    double minimum_node_distance,
+    double max_lat,
+    void** struct_ptr,
+    size_t* Npath,
+    size_t* Ncut
+);
 
 /*
  * Second part of a three-part function.
  */
-int save_grid_lines(const void* struct_ptr, double* vertices, uint8_t* codes,
-                    double* cut_vertices, uint8_t* cut_tick_type,
-                    double* cut_coords);
+int save_grid_lines(
+    const void* struct_ptr,
+    double* vertices,
+    uint8_t* codes,
+    double* cut_vertices,
+    uint8_t* cut_tick_type,
+    double* cut_coords
+);
 
 /*
  * Final part of a three-part function. Call exactly one time after
@@ -107,24 +157,36 @@ int clean_grid_lines_struct(void* struct_ptr);
  * This is the first part of another three-part function.
  * Computes a bounding polygon.
  */
-int compute_bounding_polygon(const char* proj_str, double xmin, double xmax,
-                             double ymin, double ymax, double atol,
-                             double bisection_offset,
-                             double minimum_node_distance, void** struct_ptr,
-                             size_t* Nvert);
+int compute_bounding_polygon(
+    const char* proj_str,
+    double xmin,
+    double xmax,
+    double ymin,
+    double ymax,
+    double atol,
+    double bisection_offset,
+    double minimum_node_distance,
+    void** struct_ptr,
+    size_t* Nvert
+);
 
 /*
  * Second part of the bounding polygon computation.
  * Saves the bounding polygon.
  */
-int save_bounding_polygon(const void* struct_ptr, double* vertices,
-                          double* angles);
+int save_bounding_polygon(
+    const void* struct_ptr,
+    double* vertices,
+    double* angles
+);
 
 /*
  * Last part of the bounding polygon computation.
  * Removes the bounding polygon structure.
  */
-int clean_bounding_polygon_struct(void* struct_ptr);
+int clean_bounding_polygon_struct(
+    void* struct_ptr
+);
 
 
 
@@ -132,24 +194,43 @@ int clean_bounding_polygon_struct(void* struct_ptr);
  * Compute the streamline polygons.
  */
 int compute_streamlines(
-        double xmin, double xmax, size_t nx,
-        double ymin, double ymax, size_t ny,
-        const double* z, size_t Nz,
-        double r, double ds_min,
-        double width_scale,
-        double epsilon, uint8_t width_mode,
-        size_t* struct_id
+    double xmin,
+    double xmax,
+    size_t nx,
+    double ymin,
+    double ymax,
+    size_t ny,
+    const double* z,
+    size_t Nz,
+    double r,
+    double ds_min,
+    double width_scale,
+    double epsilon,
+    uint8_t width_mode,
+    size_t* struct_id
 );
 
-size_t get_streamline_polygon_count(size_t struct_id);
+size_t get_streamline_polygon_count(
+    size_t struct_id
+);
 
-size_t get_streamline_polygon_size(size_t struct_id, size_t poly_id);
+
+size_t get_streamline_polygon_size(
+    size_t struct_id,
+    size_t poly_id
+);
+
 
 int save_streamline_polygon(
-        size_t struct_id, size_t poly_id, double* out_xy, size_t Nout
+    size_t struct_id,
+    size_t poly_id,
+    double* out_xy,
+    size_t Nout
 );
 
-int delete_streamline_struct(size_t struct_id);
+int delete_streamline_struct(
+    size_t struct_id
+);
 
 }
 
