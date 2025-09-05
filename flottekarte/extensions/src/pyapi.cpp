@@ -31,6 +31,7 @@
 #include <../include/boundary.hpp>
 #include <../include/streamlines.hpp>
 #include <../include/azimuth.hpp>
+#include <../include/objectbook.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -56,6 +57,7 @@ using flottekarte::bounding_polygon;
 using flottekarte::compute_ticks;
 using flottekarte::Gradient;
 using flottekarte::FORWARD_5POINT;
+using flottekarte::ObjectBook;
 
 /*void project_data(const char* proj_str, unsigned long Npoints,
                   const double* lon, const double* lat,
@@ -63,6 +65,35 @@ using flottekarte::FORWARD_5POINT;
 {
 
 }*/
+
+/*
+ * Object types.
+ */
+struct grid_lines_t {
+    std::vector<path_xy_t> paths;
+    std::vector<cut_t> cuts;
+};
+
+
+/*
+ * Caching the created objects:
+ */
+using ObjectBook_t = ObjectBook<
+    size_t,
+    ProjWrapper,
+    grid_lines_t,
+    path_xy_t,
+    std::vector<path_xy_t>
+>;
+
+static ObjectBook_t object_book;
+
+
+
+using index_t = uint64_t;
+
+
+
 
 int inverse_project_data_optimize(
     const char* proj_str,
@@ -375,10 +406,6 @@ int unwrap_azimuth_field(
  *                                 Grid lines                                 *
  ******************************************************************************/
 
-struct grid_lines_t {
-    std::vector<path_xy_t> paths;
-    std::vector<cut_t> cuts;
-};
 
 /*
  * This is the first of a two-part function. Computes grid lines according to
@@ -716,8 +743,6 @@ int clean_bounding_polygon_struct(
  ******************************************************************************/
 
 /* Save all streamline polygons in a map. */
-static size_t all_streamlines_id = 0;
-static std::unordered_map<size_t, std::vector<path_xy_t>> all_streamlines;
 
 
 int compute_streamlines(
@@ -759,18 +784,14 @@ int compute_streamlines(
     if (nx < 2 || ny < 2)
         return 7;
 
-    /* Get a free streamlines struct handle: */
-    size_t h = all_streamlines_id;
-
-
+    size_t oid;
     try {
-        all_streamlines.emplace(std::make_pair(
-            h,
+        oid = object_book.emplace(
             flottekarte::streamlines(
                 xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, width_scale,
                 epsilon, static_cast<flottekarte::width_mode_t>(width_mode)
             )
-        ));
+        );
     } catch (const std::exception& e){
         std::cerr << "exception: '" << e.what() << "'.\n" << std::flush;
         return 8;
@@ -778,44 +799,46 @@ int compute_streamlines(
         return 8;
     }
 
-    /* Success, save and increment the handle id: */
-    *struct_id = h;
-    ++all_streamlines_id;
+    /* Success, save the object id: */
+    *struct_id = oid;
 
     return 0;
 }
 
 
 size_t get_streamline_polygon_count(
-    size_t struct_id
+    size_t oid
 )
 {
-    auto it = all_streamlines.find(struct_id);
-    if (it == all_streamlines.end())
-        return 0;
-
-    return it->second.size();
+    try {
+        return object_book.get<std::vector<path_xy_t>>(oid)->size();
+    } catch (const std::exception& e){
+        std::cerr << "exception: '" << e.what() << "'\n" << std::flush;
+    } catch (...){
+        std::cerr << "Unknown exception.\n" << std::flush;
+    }
+    return 0;
 }
 
 
 size_t get_streamline_polygon_size(
-    size_t struct_id,
+    size_t oid,
     size_t poly_id
 )
 {
-    auto it = all_streamlines.find(struct_id);
-    if (it == all_streamlines.end())
-        return 0;
-
-    if (poly_id >= it->second.size())
-        return 0;
-
-    return it->second[poly_id].size();
+    try {
+        return object_book.get<std::vector<path_xy_t>>(oid)->at(poly_id).size();
+    } catch (const std::exception& e){
+        std::cerr << "exception: '" << e.what() << "'\n" << std::flush;
+    } catch (...){
+        std::cerr << "Unknown exception.\n" << std::flush;
+    }
+    return 0;
 }
 
 
 int save_streamline_polygon(
-    size_t struct_id,
+    size_t oid,
     size_t poly_id,
     double* out_xy,
     size_t Nout
@@ -824,39 +847,48 @@ int save_streamline_polygon(
     if (!out_xy)
         return 1;
 
-    auto it = all_streamlines.find(struct_id);
-    if (it == all_streamlines.end())
-        return 2;
+    try {
+        /* Get the correct path: */
+        std::shared_ptr<std::vector<path_xy_t>> pptr
+            = object_book.get<std::vector<path_xy_t>>(oid);
+        const path_xy_t& path(pptr->at(poly_id));
 
-    if (poly_id >= it->second.size())
-        return 3;
+        /* Now we found the correct polygon. Ensure that the buffer suffices: */
+        if (2*path.size() != Nout)
+            return 4;
 
-    /* Now we found the correct polygon. Ensure that the buffer suffices: */
-    const path_xy_t& path = it->second[poly_id];
-    if (2*path.size() != Nout)
-        return 4;
+        /* Now output the coordinates: */
+        for (const xy_t& xy : path){
+            *out_xy = xy.x;
+            ++out_xy;
+            *out_xy = xy.y;
+            ++out_xy;
+        }
 
-    /* Now output the coordinates: */
-    for (const xy_t& xy : path){
-        *out_xy = xy.x;
-        ++out_xy;
-        *out_xy = xy.y;
-        ++out_xy;
+        return 0;
+    } catch (const std::exception& e){
+        std::cerr << "exception: '" << e.what() << "'\n" << std::flush;
+    } catch (...){
+        std::cerr << "Unknown exception.\n" << std::flush;
     }
 
-    return 0;
+    return 1;
 }
 
 
 int delete_streamline_struct(
-    size_t struct_id
+    size_t oid
 )
 {
-    auto it = all_streamlines.find(struct_id);
-    if (it == all_streamlines.end())
-        return 1;
+    try {
+        object_book.erase(oid);
 
-    all_streamlines.erase(it);
+        return 0;
+    } catch (const std::exception& e){
+        std::cerr << "exception: '" << e.what() << "'\n" << std::flush;
+    } catch (...){
+        std::cerr << "Unknown exception.\n" << std::flush;
+    }
 
-    return 0;
+    return 1;
 }
