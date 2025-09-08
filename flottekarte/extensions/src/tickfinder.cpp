@@ -287,7 +287,7 @@ flottekarte::compute_ticks(
             /* Make sure that the tick is not too flat relative to
              * the segment: */
             constexpr double sin_angle_min = std::sin(10.0 * PI/180.0);
-            Gradient<FORWARD_5POINT> gr(proj.wrapper(), lola);
+            Gradient<FORWARD_5POINT> gr(proj, lola);
 
             const double dx0 = (x1 - x0) / segment_length;
             const double dy0 = (y1 - y0) / segment_length;

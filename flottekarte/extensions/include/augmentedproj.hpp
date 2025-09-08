@@ -29,28 +29,18 @@
 
 namespace flottekarte {
 
-class AugmentedProj {
+class AugmentedProj : public ProjWrapper {
 public:
     AugmentedProj(const char* proj_str);
 
     AugmentedProj(const AugmentedProj& other) = default;
     AugmentedProj(AugmentedProj&& other) = default;
 
-    void project(double lam, double phi, double& x, double& y) const;
-    xy_t project(double lam, double phi) const;
-    xy_t project(const geo_t& lola) const;
-    xy_t project(const geo_degrees_t& lola) const;
 
     geo_t inverse(const xy_t& xy_t) const;
     void inverse(double x, double y, double& lam, double& phi) const;
 
-    double a() const;
-    double f() const;
-
-    const ProjWrapper& wrapper() const;
-
 private:
-    const ProjWrapper proj;
     const bool has_inverse;
     mutable std::shared_ptr<GriddedInverter> inverter;
 

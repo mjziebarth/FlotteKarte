@@ -31,46 +31,27 @@ using flottekarte::GriddedInverter;
 using flottekarte::gradient_descent_inverse_project;
 
 AugmentedProj::AugmentedProj(const char* proj_str)
-   : proj(proj_str), has_inverse(proj.has_inverse())
+   : ProjWrapper(proj_str), has_inverse(ProjWrapper::has_inverse())
 {
 	if (!has_inverse){
-		inverter = std::make_shared<GriddedInverter>(proj, 100, 50);
+		inverter = std::make_shared<GriddedInverter>(*this, 100, 50);
 		if (!inverter)
 			throw std::runtime_error("Could not initialize gridded inverter.");
 	}
 }
 
 
-void AugmentedProj::project(double lam, double phi, double& x, double& y) const
-{
-	return proj.project(lam, phi, x, y);
-}
-
-xy_t AugmentedProj::project(double lam, double phi) const
-{
-	return proj.project(lam, phi);
-}
-
-xy_t AugmentedProj::project(const geo_t& lola) const
-{
-	return proj.project(lola);
-}
-
-xy_t AugmentedProj::project(const geo_degrees_t& lola) const
-{
-	return proj.project(lola);
-}
-
 geo_t AugmentedProj::inverse(const xy_t& xy) const
 {
 	if (!has_inverse)
 		return inverse_gd(xy);
 	try {
-		return proj.inverse(xy);
+		return ProjWrapper::inverse(xy);
 	} catch (const ProjError& err) {
 		return inverse_gd(xy);
 	}
 }
+
 
 void AugmentedProj::inverse(double x, double y, double& lam, double& phi) const
 {
@@ -80,7 +61,7 @@ void AugmentedProj::inverse(double x, double y, double& lam, double& phi) const
 		phi = geo.phi;
 	} else {
 		try {
-			proj.inverse(x,y,lam,phi);
+			ProjWrapper::inverse(x,y,lam,phi);
 		} catch (const ProjError& err) {
 			geo_t geo(inverse_gd(xy_t(x,y)));
 			lam = geo.lambda;
@@ -89,26 +70,12 @@ void AugmentedProj::inverse(double x, double y, double& lam, double& phi) const
 	}
 }
 
-double AugmentedProj::a() const
-{
-	return proj.a();
-}
-
-double AugmentedProj::f() const
-{
-	return proj.f();
-}
-
-const ProjWrapper& AugmentedProj::wrapper() const
-{
-	return proj;
-}
 
 geo_t AugmentedProj::inverse_gd(const xy_t& xy) const
 {
 	/* Make sure the inverter is initialized: */
 	if (!inverter){
-		inverter = std::make_shared<GriddedInverter>(proj, 100, 50);
+		inverter = std::make_shared<GriddedInverter>(*this, 100, 50);
 		if (!inverter)
 			throw std::runtime_error("Could not initialize gridded inverter.");
 	}
@@ -117,5 +84,5 @@ geo_t AugmentedProj::inverse_gd(const xy_t& xy) const
 	geo_t geo((*inverter)(xy));
 
 	/* Use gradient descent to finish the job: */
-	return gradient_descent_inverse_project(proj, xy, geo.lambda, geo.phi);
+	return gradient_descent_inverse_project(*this, xy, geo.lambda, geo.phi);
 }

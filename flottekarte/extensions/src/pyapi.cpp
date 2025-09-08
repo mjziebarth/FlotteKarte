@@ -80,7 +80,7 @@ struct grid_lines_t {
  */
 using ObjectBook_t = ObjectBook<
     size_t,
-    ProjWrapper,
+    AugmentedProj,
     grid_lines_t,
     path_xy_t,
     std::vector<path_xy_t>
@@ -95,8 +95,36 @@ using index_t = uint64_t;
 
 
 
-int inverse_project_data_optimize(
+
+/*
+ * Creating the ProjWrapper.
+ */
+int create_proj_wrapper_from_proj_str(
     const char* proj_str,
+    index_t& oid
+)
+{
+    try {
+        /* Try to generate the PROJ wrapper: */
+        oid = object_book.emplace(AugmentedProj(proj_str));
+    } catch (const ProjError& err) {
+        std::cout << "error occurred.\n what: " << err.what() << "\n"
+                  << std::flush;
+        return 1;
+    } catch (...) {
+        #ifdef DEBUG
+        std::cout << "error occurred.\n" << std::flush;
+        #endif
+        return 2;
+    }
+    return 0;
+}
+
+
+
+
+int inverse_project_data_optimize(
+    index_t oid,
     unsigned long Npoints,
     const double* x,
     const double* y,
@@ -108,7 +136,8 @@ int inverse_project_data_optimize(
     std::cout << "initializing proj wrapper\n" << std::flush;
     #endif
     try {
-        ProjWrapper proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        ProjWrapper& proj(*pptr);
         GriddedInverter ginv(proj, 100, 50);
 
         /* Parallel projection: */
@@ -155,7 +184,7 @@ int inverse_project_data_optimize(
 
 
 int gradients_east_north(
-    const char* proj_str,
+    index_t oid,
     unsigned long Npoints,
     const double* lon,
     const double* lat,
@@ -166,7 +195,8 @@ int gradients_east_north(
 {
     try {
         /* Initialize the projection: */
-        ProjWrapper proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        ProjWrapper& proj(*pptr);
 
         /* Parallel evaluation of the gradients: */
         #pragma omp parallel for
@@ -191,7 +221,7 @@ int gradients_east_north(
 
 
 int scale_factors(
-    const char* proj_str,
+    index_t oid,
     unsigned long Npoints,
     const double* lon,
     const double* lat,
@@ -201,7 +231,8 @@ int scale_factors(
 {
     try {
         /* Initialize the projection: */
-        ProjWrapper proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        ProjWrapper& proj(*pptr);
 
         /* Parallel evaluation of the gradients: */
         #pragma omp parallel for
@@ -228,7 +259,7 @@ int scale_factors(
 
 
 int compute_axes_ticks(
-    const char* proj_str,
+    index_t oid,
     size_t Nseg,
     const double* vertices,
     double tick_spacing_degree,
@@ -244,7 +275,8 @@ int compute_axes_ticks(
     std::cout << "initializing proj wrapper\n" << std::flush;
     #endif
     try {
-        AugmentedProj proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        AugmentedProj& proj(*pptr);
 
         /* Parallel projection: */
         #ifdef DEBUG
@@ -315,7 +347,7 @@ int compute_axes_ticks(
  ******************************************************************************/
 
 int azimuth_geographic_to_local_on_grid_inplace(
-    const char* proj_str,
+    index_t oid,
     double xmin,
     double xmax,
     size_t nx,
@@ -329,7 +361,8 @@ int azimuth_geographic_to_local_on_grid_inplace(
 {
     try {
         /* Initialize the projection: */
-        ProjWrapper proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        ProjWrapper& proj(*pptr);
 
         /* Grid description: */
         const long double dx = (xmax - (long double)xmin) / nx;
@@ -420,7 +453,7 @@ int unwrap_azimuth_field(
  * accessed.
  */
 int compute_grid_lines(
-    const char* proj_str,
+    index_t proj_oid,
     double xmin,
     double xmax,
     double ymin,
@@ -429,14 +462,14 @@ int compute_grid_lines(
     double bisection_offset,
     double minimum_node_distance,
     double max_lat,
-    void** struct_ptr,
+    index_t* gridlines_oid,
     size_t* Npath,
     size_t* Ncut
 )
 {
     /* Empty initialization: */
-    if (!struct_ptr){
-        std::cerr << "No pointer to write struct given.\n";
+    if (!gridlines_oid){
+        std::cerr << "No pointer to write gridlines struct object ID given.\n";
         return 3;
     }
     if (!Npath){
@@ -447,47 +480,48 @@ int compute_grid_lines(
         std::cerr << "No pointer to write Ncut given.\n";
         return 5;
     }
-    *struct_ptr = nullptr;
+    *gridlines_oid = 0;
     *Npath = 0;
     *Ncut = 0;
 
     try {
         /* Create the projection wrapper: */
-        ProjWrapper proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(proj_oid));
+        ProjWrapper& proj(*pptr);
 
         /* Generate the grid lines structure: */
-        grid_lines_t* glines = new grid_lines_t();
-
-        /* Save it to the output pointer: */
-        *struct_ptr = static_cast<void*>(glines);
+        grid_lines_t glines;
 
         /* Compute the grid lines: */
-        try {
-            geo_grid_t grid(generate_grid_lines(proj, xmin, xmax, ymin, ymax,
-                                                tick_spacing_degree,
-                                                bisection_offset,
-                                                minimum_node_distance,
-                                                max_lat));
-            glines->paths.swap(grid.paths);
-            glines->cuts.swap(grid.cuts);
-
-        } catch (...) {
-            /* Clean up: */
-            delete glines;
-            struct_ptr = nullptr;
-
-            return 1;
-        }
+        geo_grid_t grid(
+            generate_grid_lines(
+                proj,
+                xmin,
+                xmax,
+                ymin,
+                ymax,
+                tick_spacing_degree,
+                bisection_offset,
+                minimum_node_distance,
+                max_lat
+            )
+        );
+        glines.paths.swap(grid.paths);
+        glines.cuts.swap(grid.cuts);
 
         /* Compute the number of grid lines: */
         size_t npath = 0;
-        for (const path_xy_t& path : glines->paths){
+        for (const path_xy_t& path : glines.paths){
             npath += path.size();
         }
-        *Npath = npath;
+        size_t ncuts = glines.cuts.size();
 
-        /* Number of cuts: */
-        *Ncut = glines->cuts.size();
+        /* Move the grid lines struct: */
+        *gridlines_oid = object_book.emplace<grid_lines_t>(std::move(glines));
+
+        /* Save the sizes:: */
+        *Npath = npath;
+        *Ncut = ncuts;
 
         /* Success. */
         return 0;
@@ -511,7 +545,7 @@ constexpr uint8_t MPL_LINETO = 2;
  * compute_grid_lines has successfully completed.
  */
 int save_grid_lines(
-    const void* struct_ptr,
+    index_t oid,
     double* vertices,
     uint8_t* codes,
     double* cut_vertices,
@@ -519,66 +553,77 @@ int save_grid_lines(
     double* cut_coords
 )
 {
-    /* Cast the struct: */
-    if (struct_ptr == nullptr)
-        return 1;
-    const grid_lines_t& glines = *static_cast<const grid_lines_t*>(struct_ptr);
+    try {
+        /* Get the grid lines object: */
+        std::shared_ptr<grid_lines_t> pptr(object_book.get<grid_lines_t>(oid));
+        grid_lines_t& glines(*pptr);
 
-    /* Fill the vertices and codes arrays: */
-    for (const path_xy_t& path : glines.paths){
-        for (size_t i=0; i<path.size(); ++i){
-            /* Set the code: */
-            if (i == 0){
-                *codes = MPL_MOVETO;
-            } else {
-                *codes = MPL_LINETO;
+        /* Fill the vertices and codes arrays: */
+        for (const path_xy_t& path : glines.paths){
+            for (size_t i=0; i<path.size(); ++i){
+                /* Set the code: */
+                if (i == 0){
+                    *codes = MPL_MOVETO;
+                } else {
+                    *codes = MPL_LINETO;
+                }
+
+                /* Set the vertices: */
+                *vertices = path[i].x;
+                ++vertices;
+                *vertices = path[i].y;
+
+                /* Advance: */
+                ++codes;
+                ++vertices;
             }
-
-            /* Set the vertices: */
-            *vertices = path[i].x;
-            ++vertices;
-            *vertices = path[i].y;
-
-            /* Advance: */
-            ++codes;
-            ++vertices;
         }
-    }
 
-    /* Fill the cut points: */
-    for (const cut_t& cut : glines.cuts){
-        *cut_vertices = cut.point.x;
-        ++cut_vertices;
-        *cut_vertices = cut.point.y;
-        ++cut_vertices;
-    }
-    for (const cut_t& cut : glines.cuts){
-        *cut_axes = static_cast<uint8_t>(cut.tick_type);
-        ++cut_axes;
-    }
-    for (const cut_t& cut : glines.cuts){
-        *cut_coords = cut.coordinate;
-        ++cut_coords;
-    }
+        /* Fill the cut points: */
+        for (const cut_t& cut : glines.cuts){
+            *cut_vertices = cut.point.x;
+            ++cut_vertices;
+            *cut_vertices = cut.point.y;
+            ++cut_vertices;
+        }
+        for (const cut_t& cut : glines.cuts){
+            *cut_axes = static_cast<uint8_t>(cut.tick_type);
+            ++cut_axes;
+        }
+        for (const cut_t& cut : glines.cuts){
+            *cut_coords = cut.coordinate;
+            ++cut_coords;
+        }
 
-    /* Success. */
-    return 0;
+        /* Success. */
+        return 0;
+    } catch (const std::exception& err){
+        std::cerr << "Error in save_gridlines: '"
+            << err.what() << "'.\n" << std::flush;
+        return 1;
+    } catch (...){
+        std::cerr << "Unknown error in save_gridlines.\n" << std::flush;
+        return 2;
+    }
 }
 
 
 int clean_grid_lines_struct(
-    void* struct_ptr
+    index_t oid
 )
 {
-    if (struct_ptr == nullptr)
+    try {
+        object_book.erase(oid);
+
+        return 0;
+    } catch (const std::exception& err){
+        std::cerr << "Error in clean_grid_lines_struct: '"
+            << err.what() << "'.\n" << std::flush;
         return 1;
-
-    /* Delete the grid_lines_t struct, calling all necessary destructors: */
-    grid_lines_t* glines = static_cast<grid_lines_t*>(struct_ptr);
-    delete glines;
-
-    /* Success. */
-    return 0;
+    } catch (...){
+        std::cerr << "Unknown error in clean_grid_lines_struct.\n" << std::flush;
+        return 2;
+    }
 }
 
 
@@ -587,7 +632,7 @@ int clean_grid_lines_struct(
  ******************************************************************************/
 
 int compute_bounding_polygon(
-    const char* proj_str,
+    index_t oid,
     double xmin,
     double xmax,
     double ymin,
@@ -595,12 +640,12 @@ int compute_bounding_polygon(
     double atol,
     double bisection_offset,
     double minimum_node_distance,
-    void** struct_ptr,
+    index_t* polygon_oid_ptr,
     size_t* Nvert
 )
 {
     /* Empty initialization: */
-    if (!struct_ptr){
+    if (!polygon_oid_ptr){
         std::cerr << "No pointer to write struct given.\n";
         return 3;
     }
@@ -608,33 +653,34 @@ int compute_bounding_polygon(
         std::cerr << "No pointer to write Nver given.\n";
         return 4;
     }
-    *struct_ptr = nullptr;
     *Nvert = 0;
 
     try {
         /* Create the projection wrapper: */
-        AugmentedProj proj(proj_str);
+        std::shared_ptr<AugmentedProj> pptr(object_book.get<AugmentedProj>(oid));
+        AugmentedProj& proj(*pptr);
 
         /* Generate the bounding polygon structure: */
-        path_xy_t* poly = new path_xy_t();
-
-        /* Save it to the output pointer: */
-        *struct_ptr = static_cast<void*>(poly);
+        path_xy_t poly;
 
         /* Compute the polygon: */
-        try {
-            bounding_polygon(proj, xmin, xmax, ymin, ymax, atol,
-                             bisection_offset, minimum_node_distance, *poly);
-        } catch (...) {
-            /* Clean up: */
-            delete poly;
-            struct_ptr = nullptr;
-
-            return 1;
-        }
+        bounding_polygon(
+            proj,
+            xmin,
+            xmax,
+            ymin,
+            ymax,
+            atol,
+            bisection_offset,
+            minimum_node_distance,
+            poly
+        );
 
         /* Number of vertices: */
-        *Nvert = poly->size();
+        *Nvert = poly.size();
+
+        *polygon_oid_ptr = object_book.emplace(std::move(poly));
+
 
         /* Success. */
         return 0;
@@ -647,79 +693,92 @@ int compute_bounding_polygon(
         /* Could not allocate memory somewhere. */
         std::cerr << "Memory allocation error in compute_bounding_polygon.\n";
         return 5;
+    } catch (const std::exception& err){
+        std::cerr << "Exception in compute_bounding_polygon: '"
+            << err.what() <<  "'\n";
+        return 6;
+    } catch (...){
+        std::cerr << "Unknown error in compute_bounding_polygon.\n" << std::flush;
+        return 7;
     }
 }
 
 
 int save_bounding_polygon(
-    const void* struct_ptr,
+    index_t oid,
     double* vertices,
     double* angles
 )
 {
-    /* Cast the struct: */
-    if (!struct_ptr){
-        std::cerr << "No pointer to struct given.\n";
-        return 1;
-    }
-    const path_xy_t& poly = *static_cast<const path_xy_t*>(struct_ptr);
+    try {
+        std::shared_ptr<path_xy_t> pptr(object_book.get<path_xy_t>(oid));
+        const path_xy_t& poly = *pptr;
 
-    /* Check for empty polygon: */
-    if (poly.empty())
-        return 0;
+        /* Check for empty polygon: */
+        if (poly.empty())
+            return 0;
 
-    /* Sanity check: */
-    if (!vertices){
-        std::cerr << "No pointer to vertices given.\n";
-        return 2;
-    }
-    if (!angles){
-        std::cerr << "No pointer to angles given.\n";
-        return 2;
-    }
+        /* Sanity check: */
+        if (!vertices){
+            std::cerr << "No pointer to vertices given.\n";
+            return 2;
+        }
+        if (!angles){
+            std::cerr << "No pointer to angles given.\n";
+            return 2;
+        }
 
-    /* Computing a segment angle: */
-    auto segment_angle = [](const xy_t& last, const xy_t& next) -> double {
-        /* First the forward direction this segment */
-        const double dx = next.x - last.x;
-        const double dy = next.y - last.y;
-        /* The orthogonal outwards-pointing direction is
-         * dx' = dy
-         * dy' = -dx
-         * This makes use of the fact that the bounding polygon winds
-         * counterclockwise. Compute the angle of this direction in the
-         * coordinate system used in the Python code: clockwise from the
-         * positive y-axis.
-         */
-        const double angle = -modulo(rad2deg(std::atan2(-dx, dy)) - 90.0,
-                                     360.0);
-        if (angle < -180.0)
-            return angle + 360.0;
-        return angle;
-    };
+        /* Computing a segment angle: */
+        auto segment_angle = [](const xy_t& last, const xy_t& next) -> double {
+            /* First the forward direction this segment */
+            const double dx = next.x - last.x;
+            const double dy = next.y - last.y;
+            /* The orthogonal outwards-pointing direction is
+            * dx' = dy
+            * dy' = -dx
+            * This makes use of the fact that the bounding polygon winds
+            * counterclockwise. Compute the angle of this direction in the
+            * coordinate system used in the Python code: clockwise from the
+            * positive y-axis.
+            */
+            const double angle = -modulo(rad2deg(std::atan2(-dx, dy)) - 90.0,
+                                        360.0);
+            if (angle < -180.0)
+                return angle + 360.0;
+            return angle;
+        };
 
-    /* Fill the arrays: */
-    auto it = poly.cbegin();
-    *vertices = it->x;
-    ++vertices;
-    *vertices = it->y;
-    ++vertices;
-    auto last = it;
-    for (++it; it != poly.cend(); ++it){
-        /* Fill the vertex: */
+        /* Fill the arrays: */
+        auto it = poly.cbegin();
         *vertices = it->x;
         ++vertices;
         *vertices = it->y;
         ++vertices;
-        /* Compute and fill the angle. */
-        *angles = segment_angle(*last, *it);
-        ++angles;
-        last = it;
-    }
-    /* The last segment back to the start: */
-    *angles = segment_angle(*last, poly[0]);
+        auto last = it;
+        for (++it; it != poly.cend(); ++it){
+            /* Fill the vertex: */
+            *vertices = it->x;
+            ++vertices;
+            *vertices = it->y;
+            ++vertices;
+            /* Compute and fill the angle. */
+            *angles = segment_angle(*last, *it);
+            ++angles;
+            last = it;
+        }
+        /* The last segment back to the start: */
+        *angles = segment_angle(*last, poly[0]);
 
-    return 0;
+        return 0;
+    } catch (const std::exception& err){
+        std::cerr << "Error in save_bounding_polygon: '"
+            << err.what() << "'.\n" << std::flush;
+        return 1;
+    } catch (...){
+        std::cerr << "Unknown error in save_bounding_polygon.\n"
+            << std::flush;
+        return 2;
+    }
 }
 
 
@@ -784,23 +843,22 @@ int compute_streamlines(
     if (nx < 2 || ny < 2)
         return 7;
 
-    size_t oid;
     try {
-        oid = object_book.emplace(
+        size_t oid = object_book.emplace(
             flottekarte::streamlines(
                 xmin, xmax, nx, ymin, ymax, ny, z, r, ds_min, width_scale,
                 epsilon, static_cast<flottekarte::width_mode_t>(width_mode)
             )
         );
+
+        /* Success, save the object id: */
+        *struct_id = oid;
     } catch (const std::exception& e){
         std::cerr << "exception: '" << e.what() << "'.\n" << std::flush;
         return 8;
     } catch (...) {
         return 8;
     }
-
-    /* Success, save the object id: */
-    *struct_id = oid;
 
     return 0;
 }
